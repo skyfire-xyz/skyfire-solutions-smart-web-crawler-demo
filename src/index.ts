@@ -4,7 +4,9 @@ import helmet from "helmet";
 import morgan from "morgan";
 import dotenv from "dotenv";
 import { connectRedis, disconnectRedis } from "./config/redis";
-import { createCachedProxyMiddleware } from "./middleware/proxy";
+import { usageTrack } from "./middleware/usageTrack";
+import { verifyHeader } from "./middleware/verifyHeader";
+import { createProxyMiddleware } from "http-proxy-middleware";
 
 dotenv.config();
 
@@ -20,9 +22,16 @@ app.get("/health", (_req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
+// Step 1: Verify Skyfire Token in header
+app.use(verifyHeader); // if you have JWT verification
+
+// Step 2: Track usage and Charge
+app.use(usageTrack);
+
+// Step 3: Proxy the request if the token is valid.
 app.use(
   "/",
-  createCachedProxyMiddleware({
+  createProxyMiddleware({
     target:
       process.env.PROXY_TARGET || "https://demo-real-estate-prv4.onrender.com/",
     changeOrigin: true,
