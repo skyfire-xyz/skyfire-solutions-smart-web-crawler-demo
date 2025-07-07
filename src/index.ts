@@ -1,12 +1,12 @@
-import express, { NextFunction } from "express";
+import express from "express";
 import cors from "cors";
 import helmet from "helmet";
-import morgan from "morgan";
 import dotenv from "dotenv";
 import { connectRedis, disconnectRedis } from "./config/redis";
 import usageTrack from "./middleware/usageTrack";
 import verifyHeader from "./middleware/verifyHeader";
 import { createProxyMiddleware } from "http-proxy-middleware";
+import identifyBot from "./middleware/identifyBot";
 
 dotenv.config();
 
@@ -15,12 +15,14 @@ const PORT = process.env.PORT || 4000;
 
 app.use(helmet());
 app.use(cors());
-app.use(morgan("combined"));
 app.use(express.json());
 
 app.get("/health", (_req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
+
+// Step 0: Identify Bot
+app.use(identifyBot);
 
 // Step 1: Verify Skyfire Token in header
 app.use(verifyHeader); // if you have JWT verification

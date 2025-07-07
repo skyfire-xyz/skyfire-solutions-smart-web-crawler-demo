@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { jwtVerify, createRemoteJWKSet, errors as joseErrors } from "jose";
+import { IdentifyBotRequest } from "./identifyBot";
 
 const JWKS_URL =
   process.env.OFFICIAL_SKYFIRE_JWT_ISSUER + "/.well-known/jwks.json";
@@ -10,7 +11,17 @@ const JWT_SSI = process.env.OFFICIAL_SKYFIRE_EXPECTED_SSI!;
 
 const JWKS = createRemoteJWKSet(new URL(JWKS_URL));
 
-async function verifyHeader(req: Request, res: Response, next: NextFunction) {
+async function verifyHeader(
+  req: IdentifyBotRequest,
+  res: Response,
+  next: NextFunction
+) {
+  // Only verify token if request is from a bot
+  if (!req.isBot) {
+    next();
+    return;
+  }
+
   const skyfireToken = req.header("skyfire-pay-id") || "";
 
   if (!skyfireToken) {
@@ -32,7 +43,7 @@ async function verifyHeader(req: Request, res: Response, next: NextFunction) {
     }
 
     // Attach decoded info to req for downstream middleware
-    (req as any).skyfireUser = payload;
+    req.skyfireUser = payload;
     next();
     return;
   } catch (err: unknown) {
@@ -53,5 +64,7 @@ async function verifyHeader(req: Request, res: Response, next: NextFunction) {
 }
 
 export default (req: Request, res: Response, next: NextFunction) => {
-  return Promise.resolve(verifyHeader(req, res, next)).catch(next);
+  return Promise.resolve(verifyHeader(req as SkyfireRequest, res, next)).catch(
+    next
+  );
 };
