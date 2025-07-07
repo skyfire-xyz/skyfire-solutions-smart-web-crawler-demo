@@ -1,11 +1,11 @@
-import express from "express";
+import express, { NextFunction } from "express";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import dotenv from "dotenv";
 import { connectRedis, disconnectRedis } from "./config/redis";
-import { usageTrack } from "./middleware/usageTrack";
-import { verifyHeader } from "./middleware/verifyHeader";
+import usageTrack from "./middleware/usageTrack";
+import verifyHeader from "./middleware/verifyHeader";
 import { createProxyMiddleware } from "http-proxy-middleware";
 
 dotenv.config();
