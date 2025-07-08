@@ -2,9 +2,6 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Install yarn
-RUN npm install -g yarn
-
 COPY package*.json yarn.lock ./
 RUN yarn install --frozen-lockfile
 
@@ -16,9 +13,6 @@ RUN yarn build
 FROM node:20-alpine
 
 WORKDIR /app
-
-# Install yarn
-RUN npm install -g yarn
 
 RUN addgroup -g 1001 -S nodejs
 RUN adduser -S nodejs -u 1001
