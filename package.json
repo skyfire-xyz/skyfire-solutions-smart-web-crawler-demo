@@ -1,18 +1,22 @@
 {
   "name": "crawler-bot-protection",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Node.js/Express proxy service with Redis-based bot protection and usage tracking",
+  "main": "dist/index.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "start": "node dist/index.js",
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
+    "postbuild": "echo 'Build completed successfully'",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
+  "keywords": ["proxy", "bot-protection", "redis", "express", "typescript"],
   "author": "kmiyauchi",
   "license": "ISC",
   "devDependencies": {
@@ -34,7 +38,6 @@
     "http-proxy-middleware": "^3.0.5",
     "ioredis": "^5.6.1",
     "jose": "^6.0.11",
-    "morgan": "^1.10.0",
-    "redis": "^5.5.6"
+    "morgan": "^1.10.0"
   }
 }

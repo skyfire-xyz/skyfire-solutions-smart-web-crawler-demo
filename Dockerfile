@@ -2,28 +2,34 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-COPY package*.json ./
-RUN npm ci
+# Install yarn
+RUN npm install -g yarn
+
+COPY package*.json yarn.lock ./
+RUN yarn install --frozen-lockfile
 
 COPY tsconfig.json ./
 COPY src ./src
 
-RUN npm run build
+RUN yarn build
 
 FROM node:20-alpine
 
 WORKDIR /app
 
+# Install yarn
+RUN npm install -g yarn
+
 RUN addgroup -g 1001 -S nodejs
 RUN adduser -S nodejs -u 1001
 
-COPY package*.json ./
-RUN npm ci --only=production && npm cache clean --force
+COPY package*.json yarn.lock ./
+RUN yarn install --frozen-lockfile --production && yarn cache clean
 
 COPY --from=builder /app/dist ./dist
 
 USER nodejs
 
-EXPOSE 3000
+EXPOSE 10000
 
 CMD ["node", "dist/index.js"]
