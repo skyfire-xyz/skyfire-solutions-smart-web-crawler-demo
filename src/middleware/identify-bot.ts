@@ -1,11 +1,12 @@
 import { Request, Response, NextFunction } from "express";
+import { BotProtectionRequest } from "../type";
 
 export interface IdentifyBotRequest extends Request {
   isBot?: boolean;
 }
 
 export default function identifyBot(
-  req: IdentifyBotRequest,
+  req: BotProtectionRequest,
   _res: Response,
   next: NextFunction
 ) {

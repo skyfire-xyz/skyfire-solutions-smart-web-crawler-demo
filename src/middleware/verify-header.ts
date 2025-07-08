@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { jwtVerify, createRemoteJWKSet, errors as joseErrors } from "jose";
-import { IdentifyBotRequest } from "./identifyBot";
+import { BotProtectionRequest, DecodedSkyfireJwt } from "../type";
 
 const JWKS_URL =
   process.env.OFFICIAL_SKYFIRE_JWT_ISSUER + "/.well-known/jwks.json";
@@ -11,15 +11,11 @@ const JWT_SSI = process.env.OFFICIAL_SKYFIRE_EXPECTED_SSI!;
 
 const JWKS = createRemoteJWKSet(new URL(JWKS_URL));
 
-export interface SkyfireRequest extends IdentifyBotRequest {
-  jwtPayload?: string;
-}
-
-async function verifyHeader(
-  req: IdentifyBotRequest,
+export default async function verifyHeader(
+  req: BotProtectionRequest,
   res: Response,
   next: NextFunction
-) {
+): Promise<void> {
   // Only verify token if request is from a bot
   if (!req.isBot) {
     next();
@@ -42,16 +38,15 @@ async function verifyHeader(
     });
 
     console.log(payload, "JWT Payload");
-
     if ((payload as any).ssi !== JWT_SSI) {
       res.status(401).json({ error: "Invalid SSI in token" });
       return;
     }
 
     // Attach decoded info to req for downstream middleware
-    console.log(payload, "JWT Payload");
 
-    (req as SkyfireRequest).jwtPayload = skyfireToken;
+    req.decodedJWT = payload as unknown as DecodedSkyfireJwt;
+    req.skyfireToken = skyfireToken;
 
     next();
     return;
@@ -71,9 +66,3 @@ async function verifyHeader(
     return;
   }
 }
-
-export default (req: Request, res: Response, next: NextFunction) => {
-  return Promise.resolve(verifyHeader(req as SkyfireRequest, res, next)).catch(
-    next
-  );
-};
