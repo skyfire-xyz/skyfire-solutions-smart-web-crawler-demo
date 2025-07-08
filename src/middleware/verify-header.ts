@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from "express";
+import { Response, NextFunction } from "express";
 import { jwtVerify, createRemoteJWKSet, errors as joseErrors } from "jose";
 import { BotProtectionRequest, DecodedSkyfireJwt } from "../type";
 
