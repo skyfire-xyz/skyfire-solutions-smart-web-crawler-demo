@@ -59,6 +59,7 @@ export default async function usageTrack(
   );
 
   // If the session is new, charge the token first and get the remaining balance
+  let initialCharge = false;
   const sessionExists = await manager.sessionExists();
   if (!sessionExists) {
     console.log("New session created for token", jwtPayload.jti);
@@ -71,13 +72,11 @@ export default async function usageTrack(
       perRequestAmount
     ); // Charge the token
 
+    initialCharge = true;
+
     // Reset accumulated amount
     await manager.resetAccumulated();
     await manager.updateRemainingBalance(remainingBalance);
-
-    console.log(
-      `Initial charge triggered for token ${jwtPayload.jti}: charged ${perRequestAmount}: remainingBalance=${remainingBalance}`
-    );
 
     await logSession(
       jwtPayload,
@@ -97,13 +96,15 @@ export default async function usageTrack(
     await logSession(
       jwtPayload,
       manager,
-      `[Threshold reached] hasReachedRemainingBalance=${hasReachedRemainingBalance} hasReachedMaximumRequestCount=${hasReachedMaximumRequestCount}`
+      `[Threshold reached] Error:402: hasReachedRemainingBalance=${hasReachedRemainingBalance} hasReachedMaximumRequestCount=${hasReachedMaximumRequestCount}`
     );
 
     // Check if user owes any accumulated amount
+    // Note: Leave this logic here to just make sure the user is charged for the accumulated amount.
     const accumulated = await manager.getAccumulatedAmount();
     let chargeInfo = null;
 
+    // If there is an accumulated amount, charge the token before returning the response.
     if (accumulated > 0) {
       // Charge the token
       const { remainingBalance } = await chargeToken(
@@ -121,23 +122,58 @@ export default async function usageTrack(
     }
 
     // 402 Payment Required: token usage exceeded. Blocked from returning the response.
+
+    const hasCharges = chargeInfo?.charged && chargeInfo.charged > 0;
     await makePaymentHeaders(res, manager, chargeInfo?.charged);
 
-    res.status(402).json({
-      error: "Payment Required: token usage exceeded",
-      chargeInfo: chargeInfo,
-      reason: hasReachedRemainingBalance
-        ? "insufficient_balance"
-        : "batch_limit_reached",
-    });
-    return;
+    if (hasReachedRemainingBalance) {
+      res.status(402).json({
+        error: `Payment Required: token usage exceeded. Insufficient balance. ${
+          hasCharges ? `Accumulated amount was charged.` : ""
+        }`,
+        reason: "insufficient_balance",
+      });
+      return;
+    } else if (hasReachedMaximumRequestCount) {
+      res.status(402).json({
+        error: `Payment Required: token usage exceeded. Maximum request count reached. ${
+          hasCharges ? `Accumulated amount was charged.` : ""
+        }`,
+        reason: "batch_limit_reached",
+      });
+      return;
+    }
   }
 
-  // Theashold is not reached. Update the usage session, and forward the request.
-  const { count, accumulated } = await manager.updateUsage();
-  if (!count || !accumulated) {
-    throw new Error("Failed to update usage session");
-  }
+  // Update the usage session count, accumulated amount, and remaining balance.
+  await manager.updateUsage({ skipAccumulation: initialCharge }); // Skip accumulation if it's already charged for the initial request.
+
+  // // Check if the request count has reached the maximum allowed requests
+  // if (await manager.hasReachedMaximumRequestCount()) {
+  //   await logSession(
+  //     jwtPayload,
+  //     manager,
+  //     `Threashold reached: Maximum request count reached. We charged the accumulated amount till now. Next requset will be rejected with 402`
+  //   );
+  //   const accumulated = await manager.getAccumulatedAmount();
+  //   if (accumulated && accumulated > 0) {
+  //     // Charge accumulated amount
+  //     const { remainingBalance } = await chargeToken(
+  //       req.skyfireToken,
+  //       accumulated
+  //     );
+  //     await manager.resetAccumulated();
+  //     await manager.updateRemainingBalance(remainingBalance);
+  //   }
+  // }
+
+  // if (await manager.hasReachedRemainingBalance()) {
+  //   await logSession(
+  //     jwtPayload,
+  //     manager,
+  //     `Threashold reached: Remaining balance is insufficient for the next request. We charged the accumulated amount at this point. Next requset will be rejected with 402 for insufficient balance.`
+  //   );
+  // }
 
   // Add payment info to response headers
   await makePaymentHeaders(res, manager);
@@ -155,11 +191,13 @@ async function makePaymentHeaders(
   manager: UsageSessionManager,
   chargedAmount?: number
 ): Promise<void> {
-  const [count, accumulated, remainingBalance] = await Promise.all([
-    manager.getRequestCount(),
-    manager.getAccumulatedAmount(),
-    manager.getRemainingBalance(),
-  ]);
+  const [count, accumulated, remainingBalance, sessionExpiry] =
+    await Promise.all([
+      manager.getRequestCount(),
+      manager.getAccumulatedAmount(),
+      manager.getRemainingBalance(),
+      manager.getSessionExpirationTimestamp(),
+    ]);
 
   res.setHeader("X-Payment-Charged", chargedAmount?.toString() || "0");
   res.setHeader("X-Payment-Session-Count", count.toString());
@@ -167,6 +205,14 @@ async function makePaymentHeaders(
   res.setHeader(
     "X-Payment-Session-Remaining-Balance",
     remainingBalance?.toString() || "0"
+  );
+  res.setHeader(
+    "X-Payment-Session-Token-MNR",
+    manager.maximumRequestCount.toString()
+  );
+  res.setHeader(
+    "X-Payment-Session-Expires-At",
+    sessionExpiry?.toString() || "0"
   );
 }
 

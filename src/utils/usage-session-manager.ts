@@ -7,9 +7,9 @@ import { redis } from "../config/redis";
  */
 export class UsageSessionManager {
   private redisKey: string;
-  private perRequestAmount: number;
-  private maximumRequestCount: number;
-  private sessionDuration: number;
+  public perRequestAmount: number;
+  public maximumRequestCount: number;
+  public sessionDuration: number;
 
   constructor(
     redisKey: string,
@@ -38,7 +38,9 @@ export class UsageSessionManager {
    * Increments usage counters: count, accumulated amount, and sets last activity.
    * Returns the updated count, accumulated amount, and whether this is a new session.
    */
-  async updateUsage(): Promise<{
+  async updateUsage({
+    skipAccumulation = false,
+  }: { skipAccumulation?: boolean } = {}): Promise<{
     count?: number;
     accumulated?: number;
     isNewSession: boolean;
@@ -48,7 +50,11 @@ export class UsageSessionManager {
 
     const multi = redis.multi();
     multi.hincrby(this.redisKey, "count", 1);
-    multi.hincrbyfloat(this.redisKey, "accumulated", this.perRequestAmount);
+
+    if (!skipAccumulation) {
+      multi.hincrbyfloat(this.redisKey, "accumulated", this.perRequestAmount);
+    }
+
     multi.hset(this.redisKey, "lastRequest", Date.now());
     multi.expire(this.redisKey, this.sessionDuration);
 
@@ -59,16 +65,21 @@ export class UsageSessionManager {
 
     if (execResult && Array.isArray(execResult)) {
       const countRes = execResult[0];
-      const accumulatedRes = execResult[1];
       if (Array.isArray(countRes) && typeof countRes[1] === "number") {
         count = countRes[1];
       }
 
-      if (
-        Array.isArray(accumulatedRes) &&
-        typeof accumulatedRes[1] === "string"
-      ) {
-        accumulated = Number(accumulatedRes[1]);
+      if (!skipAccumulation) {
+        const accumulatedRes = execResult[1];
+        if (
+          Array.isArray(accumulatedRes) &&
+          typeof accumulatedRes[1] === "string"
+        ) {
+          accumulated = Number(accumulatedRes[1]);
+        }
+      } else {
+        // If skipping accumulation, get the current accumulated amount
+        accumulated = await this.getAccumulatedAmount();
       }
     }
 
@@ -187,6 +198,38 @@ export class UsageSessionManager {
     } catch (err) {
       console.error("Error checking session expiry:", err);
       return false;
+    }
+  }
+
+  async getSessionExpiry(): Promise<number> {
+    try {
+      const lastRequest = await redis.hget(this.redisKey, "lastRequest");
+      if (!lastRequest) return 0;
+
+      const lastRequestTime = Number(lastRequest);
+      const currentTime = Date.now();
+      const timeDiff = currentTime - lastRequestTime;
+      return this.sessionDuration * 1000 - timeDiff;
+    } catch (err) {
+      console.error("Error getting session expiry:", err);
+      return 0;
+    }
+  }
+
+  /**
+   * Gets the actual expiration timestamp (Unix timestamp in milliseconds)
+   */
+  async getSessionExpirationTimestamp(): Promise<number | null> {
+    try {
+      const lastRequest = await redis.hget(this.redisKey, "lastRequest");
+      if (!lastRequest) return null;
+
+      const lastRequestTime = Number(lastRequest);
+      const expirationTime = lastRequestTime + this.sessionDuration * 1000;
+      return expirationTime;
+    } catch (err) {
+      console.error("Error getting session expiration timestamp:", err);
+      return null;
     }
   }
 }
