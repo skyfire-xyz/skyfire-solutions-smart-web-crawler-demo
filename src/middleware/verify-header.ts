@@ -1,6 +1,6 @@
-import { Response, NextFunction } from "express";
+import { Request, Response, NextFunction } from "express";
 import { jwtVerify, createRemoteJWKSet, errors as joseErrors } from "jose";
-import { BotProtectionRequest, DecodedSkyfireJwt } from "../type";
+import { DecodedSkyfireJwt, isBotRequest } from "../type";
 
 const JWKS_URL =
   process.env.OFFICIAL_SKYFIRE_JWT_ISSUER + "/.well-known/jwks.json";
@@ -12,12 +12,12 @@ const JWT_SSI = process.env.OFFICIAL_SKYFIRE_EXPECTED_SSI!;
 const JWKS = createRemoteJWKSet(new URL(JWKS_URL));
 
 export default async function verifyHeader(
-  req: BotProtectionRequest,
+  req: Request,
   res: Response,
   next: NextFunction
 ): Promise<void> {
   // Only verify token if request is from a bot
-  if (!req.isBot) {
+  if (!isBotRequest(req)) {
     next();
     return;
   }
@@ -44,7 +44,6 @@ export default async function verifyHeader(
     }
 
     // Attach decoded info to req for downstream middleware
-
     req.decodedJWT = payload as unknown as DecodedSkyfireJwt;
     req.skyfireToken = skyfireToken;
 

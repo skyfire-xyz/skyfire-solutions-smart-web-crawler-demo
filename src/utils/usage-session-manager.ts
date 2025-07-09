@@ -1,37 +1,57 @@
 // src/utils/UsageSessionManager.ts
 
 import { redis } from "../config/redis";
-import { DecodedSkyfireJwt } from "../type";
 
 /**
  * Manages usage session, request counting, and batch charge thresholds for a token/session.
  */
 export class UsageSessionManager {
+  private redisKey: string;
   private perRequestAmount: number;
-  private minimumChargeAmount: number;
   private maximumRequestCount: number;
+  private sessionDuration: number;
 
   constructor(
-    private decodedJWT: DecodedSkyfireJwt,
-    private redisKey: string,
-    private sessionDuration: number // in seconds
+    redisKey: string,
+    perRequestAmount: number,
+    maximumRequestCount: number,
+    sessionDuration: number
   ) {
-    // Extract values from JWT
-    this.perRequestAmount = Number(this.decodedJWT.spr) || 0;
-    this.minimumChargeAmount = 0.01; // Default minimum charge amount
-    this.maximumRequestCount = Number(this.decodedJWT.mnr) || 1000;
+    this.redisKey = redisKey;
+    this.perRequestAmount = perRequestAmount;
+    this.maximumRequestCount = maximumRequestCount;
+    this.sessionDuration = sessionDuration;
+  }
+
+  async createNewSession(): Promise<void> {
+    const multi = redis.multi();
+    multi.hset(this.redisKey, "count", "0");
+    multi.hset(this.redisKey, "accumulated", "0");
+    multi.hset(this.redisKey, "lastRequest", Date.now().toString());
+    multi.hset(this.redisKey, "remainingBalance", "0");
+    multi.expire(this.redisKey, this.sessionDuration);
+
+    await multi.exec();
   }
 
   /**
-   * Updates the session in Redis: increments count, accumulated amount, sets last activity, and expiry.
-   * Returns the updated count and accumulated amount.
+   * Increments usage counters: count, accumulated amount, and sets last activity.
+   * Returns the updated count, accumulated amount, and whether this is a new session.
    */
-  async updateSession(): Promise<{ count?: number; accumulated?: number }> {
+  async updateUsage(): Promise<{
+    count?: number;
+    accumulated?: number;
+    isNewSession: boolean;
+  }> {
+    // Check if this is a new session before incrementing
+    const sessionExists = await this.sessionExists();
+
     const multi = redis.multi();
     multi.hincrby(this.redisKey, "count", 1);
     multi.hincrbyfloat(this.redisKey, "accumulated", this.perRequestAmount);
     multi.hset(this.redisKey, "lastRequest", Date.now());
     multi.expire(this.redisKey, this.sessionDuration);
+
     const execResult = await multi.exec();
 
     let count: number | undefined = undefined;
@@ -51,36 +71,102 @@ export class UsageSessionManager {
         accumulated = Number(accumulatedRes[1]);
       }
     }
-    return { count, accumulated };
+
+    return { count, accumulated, isNewSession: !sessionExists };
   }
 
   /**
-   * Resets the accumulated amount in Redis after a batch charge.
+   * Updates the remaining balance in Redis.
+   */
+  async updateRemainingBalance(newBalance: string): Promise<void> {
+    await redis.hset(this.redisKey, "remainingBalance", newBalance);
+  }
+
+  /**
+   * Resets the accumulated amount and count in Redis after a batch charge.
    */
   async resetAccumulated(): Promise<void> {
-    await redis.hset(this.redisKey, "accumulated", "0");
-    await redis.hset(this.redisKey, "count", 0);
+    const multi = redis.multi();
+    multi.hset(this.redisKey, "accumulated", "0");
+    multi.hset(this.redisKey, "count", "0");
+    await multi.exec();
+  }
+
+  /**
+   * Gets the current remaining balance from Redis.
+   */
+  async getRemainingBalance(): Promise<number | null> {
+    try {
+      const balance = await redis.hget(this.redisKey, "remainingBalance");
+      return balance !== null ? Number(balance) : null;
+    } catch (err) {
+      console.error("Error getting remaining balance:", err);
+      return null;
+    }
+  }
+
+  /**
+   * Gets the current request count from Redis.
+   */
+  async getRequestCount(): Promise<number> {
+    try {
+      const count = await redis.hget(this.redisKey, "count");
+      return count !== null ? Number(count) : 0;
+    } catch (err) {
+      console.error("Error getting request count:", err);
+      return 0;
+    }
+  }
+
+  /**
+   * Gets the current accumulated amount from Redis.
+   */
+  async getAccumulatedAmount(): Promise<number> {
+    try {
+      const accumulated = await redis.hget(this.redisKey, "accumulated");
+      return accumulated !== null ? Number(accumulated) : 0;
+    } catch (err) {
+      console.error("Error getting accumulated amount:", err);
+      return 0;
+    }
+  }
+  /**
+   * Checks if the session exists in Redis.
+   */
+  async sessionExists(): Promise<boolean> {
+    try {
+      const exists = await redis.exists(this.redisKey);
+      return exists === 1;
+    } catch (err) {
+      console.error("Error checking if session exists:", err);
+      return false;
+    }
   }
 
   /**
    * Checks if the request count has reached the maximum allowed requests.
    */
-  hasReachedMaximumRequestCount(count: number): boolean {
-    return (
-      typeof count === "number" &&
-      typeof this.maximumRequestCount === "number" &&
-      count >= this.maximumRequestCount
-    );
+  async hasReachedMaximumRequestCount(): Promise<boolean> {
+    try {
+      const count = await this.getRequestCount();
+      return count >= this.maximumRequestCount;
+    } catch (err) {
+      console.error("Error checking maximum request count:", err);
+      return false;
+    }
   }
 
   /**
-   * Checks if the accumulated amount has reached the minimum charge threshold.
+   * Checks if the remaining balance is insufficient for the next request.
    */
-  hasReachedMinimumAmount(accumulated: number): boolean {
+  async hasReachedRemainingBalance(): Promise<boolean> {
+    const balance = await this.getRemainingBalance();
+    const accumulated = await this.getAccumulatedAmount();
+
     return (
-      typeof accumulated === "number" &&
-      typeof this.minimumChargeAmount === "number" &&
-      accumulated >= this.minimumChargeAmount
+      balance === null ||
+      balance === 0 ||
+      balance <= this.perRequestAmount + accumulated
     );
   }
 
@@ -100,7 +186,7 @@ export class UsageSessionManager {
       return timeDiff > sessionExpiryMs;
     } catch (err) {
       console.error("Error checking session expiry:", err);
-      return false; // Default to not expired if we can't check
+      return false;
     }
   }
 }

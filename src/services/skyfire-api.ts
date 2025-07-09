@@ -1,12 +1,15 @@
 const BACKEND_API_URL = process.env.BACKEND_API_URL;
 const SELLER_SKYFIRE_API_KEY = process.env.SELLER_SKYFIRE_API_KEY;
 
+interface ChargeTokenResponse {
+  amountCharged: string;
+  remainingBalance: string;
+}
+
 export async function chargeToken(
   skyfireToken: string,
   amountToCharge: number
-): Promise<string> {
-  console.log("skyfireToken", skyfireToken);
-
+): Promise<ChargeTokenResponse> {
   try {
     const response = await fetch(`${BACKEND_API_URL}/api/v1/tokens/charge`, {
       method: "POST",
@@ -24,11 +27,9 @@ export async function chargeToken(
 
     console.log("Successfully charged token", data);
 
-    return JSON.stringify(data);
+    return data as ChargeTokenResponse;
   } catch (err: unknown) {
     console.error("Error while charging token: ", err);
-    return `Error while charging token: ${
-      err instanceof Error ? err.message : String(err)
-    }`;
+    throw err;
   }
 }

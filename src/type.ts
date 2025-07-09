@@ -17,31 +17,31 @@ export interface DecodedSkyfireJwt {
   sub: string;
   exp: number;
 }
-
-export interface BotProtectionRequest extends Request {
+export interface BotRequest extends Request {
   isBot?: boolean;
   decodedJWT?: DecodedSkyfireJwt;
   skyfireToken?: string;
 }
+export interface VerifiedJWTRequest extends BotRequest {
+  isBot: true;
+  decodedJWT: DecodedSkyfireJwt;
+  skyfireToken: string;
+}
 
-export interface SellerServiceInfo {
-  id: string;
-  active: boolean;
-  approved: boolean;
-  userAgentId: string;
-  minimumTokenAmount: number;
-  createdDate: string; // ISO date string
-  updatedDate: string; // ISO date string
-  name: string;
-  description: string;
-  tags: string[];
-  price: number;
-  priceSchema: string;
-  type: string;
-  apiSpec: any | null;
-  url: string;
-  identityVerification: {
-    business: any[]; // You can replace 'any' with a more specific type if you know it
-    individual: any[]; // You can replace 'any' with a more specific type if you know it
-  };
+// Type guards
+export function isBotRequest(req: Request): req is BotRequest {
+  return (req as BotRequest).isBot === true;
+}
+
+export function hasVerifiedJwt(req: Request): req is VerifiedJWTRequest {
+  const verifiedReq = req as VerifiedJWTRequest;
+  return (
+    verifiedReq.isBot === true &&
+    !!verifiedReq.decodedJWT &&
+    !!verifiedReq.skyfireToken
+  );
+}
+
+export function isHumanRequest(req: Request): req is Request {
+  return (req as BotRequest).isBot !== true;
 }
