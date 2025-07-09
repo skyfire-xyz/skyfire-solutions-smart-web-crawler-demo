@@ -12,7 +12,7 @@ module.exports = {
     '!src/test-*.ts',
     '!src/__tests__/**'
   ],
-  setupFilesAfterEnv: ['<rootDir>/src/test-setup.ts'],
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   testTimeout: 30000,
   verbose: true
 }; 
