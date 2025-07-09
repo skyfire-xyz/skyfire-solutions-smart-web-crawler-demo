@@ -81,40 +81,54 @@ export default async function usageTrack(
   }
 
   const remainingBalance = await manager.getRemainingBalance();
-  console.log("remainingBalance", remainingBalance);
 
-  // Check if the remaining balance is insufficient for the next request
+  // Check if threashold is reached
+  // 1. Is the  remaining balance is insufficient for the next request
+  // 2. Is the request count has reached the maximum allowed requests
   const hasReachedRemainingBalance = await manager.hasReachedRemainingBalance();
-  if (hasReachedRemainingBalance) {
-    // 402 Payment Required: token usage exceeded
-    res.status(402).json({ error: "Payment Required: token usage exceeded" });
+  const hasReachedMaximumRequestCount =
+    await manager.hasReachedMaximumRequestCount();
+
+  if (hasReachedRemainingBalance || hasReachedMaximumRequestCount) {
+    console.log(
+      `Threashold reached for token ${jwtPayload.jti}: remainingBalance=${remainingBalance} hasReachedRemainingBalance=${hasReachedRemainingBalance} hasReachedMaximumRequestCount=${hasReachedMaximumRequestCount}`
+    );
+
+    // Check if user owes any accumulated amount
+    const accumulated = await manager.getAccumulatedAmount();
+    let chargeInfo = null;
+
+    if (accumulated > 0) {
+      // Charge the token
+      const { remainingBalance } = await chargeToken(
+        req.skyfireToken,
+        accumulated
+      );
+      // Reset accumulated amount
+      await manager.resetAccumulated();
+      await manager.updateRemainingBalance(remainingBalance);
+
+      chargeInfo = {
+        charged: accumulated,
+        remainingBalance: remainingBalance,
+      };
+    }
+
+    // 402 Payment Required: token usage exceeded. Blocked from returning the response.
+    res.status(402).json({
+      error: "Payment Required: token usage exceeded",
+      chargeInfo: chargeInfo,
+      reason: hasReachedRemainingBalance
+        ? "insufficient_balance"
+        : "batch_limit_reached",
+    });
     return;
   }
 
+  // Theashold is not reached. Update the usage session, and forward the request.
   const { count, accumulated } = await manager.updateUsage();
   if (!count || !accumulated) {
     throw new Error("Failed to update usage session");
-  }
-
-  const hasReachedMaximumRequestCount =
-    await manager.hasReachedMaximumRequestCount();
-  if (hasReachedMaximumRequestCount) {
-    // Charge the token
-    const { remainingBalance } = await chargeToken(
-      req.skyfireToken,
-      accumulated
-    );
-
-    // Reset accumulated amount
-    await manager.resetAccumulated();
-    await manager.updateRemainingBalance(remainingBalance);
-
-    console.log(
-      `Batch charge triggered for token ${jwtPayload.jti}: charged ${accumulated}`
-    );
-
-    res.status(402).json({ error: "Payment Required: token usage exceeded" });
-    return;
   }
 
   // Log session counts (for debugging)
