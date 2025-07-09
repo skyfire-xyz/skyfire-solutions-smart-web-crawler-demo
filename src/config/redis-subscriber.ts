@@ -20,10 +20,7 @@ async function handleSessionExpiration(sessionId: string): Promise<void> {
         );
 
         try {
-          const { remainingBalance } = await chargeToken(
-            jwtToken,
-            Number(accumulated)
-          );
+          await chargeToken(jwtToken, Number(accumulated));
         } catch (error) {
           console.error(
             `Failed to charge accumulated amount for session ${sessionId}:`,
