@@ -32,7 +32,6 @@
     "morgan": "^1.10.0",
     "typescript": "^5.8.3",
     "esbuild": "^0.20.0",
-    "@esbuild/darwin-arm64": "^0.20.0",
     "tsx": "^4.20.3"
   },
   "devDependencies": {
