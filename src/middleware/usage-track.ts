@@ -78,9 +78,13 @@ export default async function usageTrack(
     console.log(
       `Initial charge triggered for token ${jwtPayload.jti}: charged ${perRequestAmount}: remainingBalance=${remainingBalance}`
     );
-  }
 
-  const remainingBalance = await manager.getRemainingBalance();
+    await logSession(
+      jwtPayload,
+      manager,
+      `Initial charge: charged ${perRequestAmount}`
+    );
+  }
 
   // Check if threashold is reached
   // 1. Is the  remaining balance is insufficient for the next request
@@ -90,8 +94,10 @@ export default async function usageTrack(
     await manager.hasReachedMaximumRequestCount();
 
   if (hasReachedRemainingBalance || hasReachedMaximumRequestCount) {
-    console.log(
-      `Threashold reached for token ${jwtPayload.jti}: remainingBalance=${remainingBalance} hasReachedRemainingBalance=${hasReachedRemainingBalance} hasReachedMaximumRequestCount=${hasReachedMaximumRequestCount}`
+    await logSession(
+      jwtPayload,
+      manager,
+      `[Threshold reached] hasReachedRemainingBalance=${hasReachedRemainingBalance} hasReachedMaximumRequestCount=${hasReachedMaximumRequestCount}`
     );
 
     // Check if user owes any accumulated amount
@@ -115,6 +121,8 @@ export default async function usageTrack(
     }
 
     // 402 Payment Required: token usage exceeded. Blocked from returning the response.
+    await makePaymentHeaders(res, manager, chargeInfo?.charged);
+
     res.status(402).json({
       error: "Payment Required: token usage exceeded",
       chargeInfo: chargeInfo,
@@ -131,10 +139,60 @@ export default async function usageTrack(
     throw new Error("Failed to update usage session");
   }
 
-  // Log session counts (for debugging)
-  console.log(
-    `Session Summary: ${jwtPayload.jti}: count=${count} accumulated=${accumulated}`
-  );
+  // Add payment info to response headers
+  await makePaymentHeaders(res, manager);
+
+  await logSession(jwtPayload, manager);
 
   next();
+}
+
+/**
+ * Creates payment headers for response
+ */
+async function makePaymentHeaders(
+  res: Response,
+  manager: UsageSessionManager,
+  chargedAmount?: number
+): Promise<void> {
+  const [count, accumulated, remainingBalance] = await Promise.all([
+    manager.getRequestCount(),
+    manager.getAccumulatedAmount(),
+    manager.getRemainingBalance(),
+  ]);
+
+  res.setHeader("X-Payment-Charged", chargedAmount?.toString() || "0");
+  res.setHeader("X-Payment-Session-Count", count.toString());
+  res.setHeader("X-Payment-Session-Accumulated-Amount", accumulated.toString());
+  res.setHeader(
+    "X-Payment-Session-Remaining-Balance",
+    remainingBalance?.toString() || "0"
+  );
+}
+
+/**
+ * Logs session payment information
+ */
+async function logSession(
+  jwtPayload: any,
+  manager: UsageSessionManager,
+  additionalInfo?: string
+): Promise<void> {
+  const [count, accumulated, remainingBalance] = await Promise.all([
+    manager.getRequestCount(),
+    manager.getAccumulatedAmount(),
+    manager.getRemainingBalance(),
+  ]);
+
+  const logMessage = `Session Summary: jti:${
+    jwtPayload.jti
+  } count:${count} accumulated:${accumulated} remainingBalance:${
+    remainingBalance?.toString() || "0"
+  }`;
+
+  if (additionalInfo) {
+    console.log(`${additionalInfo} | ${logMessage}`);
+  } else {
+    console.log(logMessage);
+  }
 }
