@@ -86,13 +86,17 @@ export default async function usageTrack(
   }
 
   // Check if threashold is reached
+  // 0. Ignore if the session is new and already charged.
   // 1. Is the  remaining balance is insufficient for the next request
   // 2. Is the request count has reached the maximum allowed requests
   const hasReachedRemainingBalance = await manager.hasReachedRemainingBalance();
   const hasReachedMaximumRequestCount =
     await manager.hasReachedMaximumRequestCount();
 
-  if (hasReachedRemainingBalance || hasReachedMaximumRequestCount) {
+  if (
+    !sessionExists &&
+    (hasReachedRemainingBalance || hasReachedMaximumRequestCount)
+  ) {
     await logSession(
       jwtPayload,
       manager,
