@@ -3,6 +3,7 @@ import cors from "cors";
 import helmet from "helmet";
 import dotenv from "dotenv";
 import { connectRedis, disconnectRedis } from "./config/redis";
+import { setupExpirationSubscriber } from "./config/redis-subscriber";
 import usageTrack from "./middleware/usage-track";
 import verifyHeader from "./middleware/verify-header";
 import { createProxyMiddleware } from "http-proxy-middleware";
@@ -43,6 +44,7 @@ app.use(
 const startServer = async (): Promise<void> => {
   try {
     await connectRedis();
+    await setupExpirationSubscriber();
 
     app.listen(PORT, () => {
       console.log(`Proxy server running on port ${PORT}`);

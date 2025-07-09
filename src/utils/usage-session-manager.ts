@@ -23,8 +23,9 @@ export class UsageSessionManager {
     this.sessionDuration = sessionDuration;
   }
 
-  async createNewSession(): Promise<void> {
+  async createNewSession(jwtToken: string): Promise<void> {
     const multi = redis.multi();
+    multi.hset(this.redisKey, "jwtToken", jwtToken);
     multi.hset(this.redisKey, "count", "0");
     multi.hset(this.redisKey, "accumulated", "0");
     multi.hset(this.redisKey, "lastRequest", Date.now().toString());
@@ -230,6 +231,52 @@ export class UsageSessionManager {
     } catch (err) {
       console.error("Error getting session expiration timestamp:", err);
       return null;
+    }
+  }
+
+  /**
+   * Gets the stored JWT token from the session
+   */
+  async getJWT(): Promise<string | null> {
+    try {
+      const jwt = await redis.hget(this.redisKey, "jwtToken");
+      return jwt;
+    } catch (err) {
+      console.error("Error getting JWT:", err);
+      return null;
+    }
+  }
+
+  /**
+   * Stores session data in a stream before expiration for later retrieval
+   */
+  async storeSessionDataForExpiration(): Promise<void> {
+    try {
+      const sessionData = await redis.hgetall(this.redisKey);
+      if (sessionData && Object.keys(sessionData).length > 0) {
+        // Store in a hash that doesn't expire (simpler than streams)
+        const dataKey = `session_data:${this.redisKey}`;
+        await redis.hset(
+          dataKey,
+          "session_id",
+          this.redisKey,
+          "count",
+          sessionData.count || "0",
+          "accumulated",
+          sessionData.accumulated || "0",
+          "jwtToken",
+          sessionData.jwtToken || "",
+          "remainingBalance",
+          sessionData.remainingBalance || "0",
+          "updated_at",
+          Date.now().toString()
+        );
+
+        // Set expiration for the data key (cleanup after 1 hour)
+        await redis.expire(dataKey, 3600);
+      }
+    } catch (err) {
+      console.error("Error storing session data for expiration:", err);
     }
   }
 }
