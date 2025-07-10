@@ -38,7 +38,7 @@ export default async function verifyHeader(
       algorithms: [JWT_ALGORITHM],
     });
 
-    logger.info(`[Session: ${(payload as any).jti}] JWT Payload:`, payload);
+    logger.info(`JWT Payload:`, payload);
     if ((payload as any).ssi !== JWT_SSI) {
       res.status(401).json({ error: "Invalid SSI in token" });
       return;

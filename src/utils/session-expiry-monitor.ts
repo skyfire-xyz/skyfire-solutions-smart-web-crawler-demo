@@ -144,9 +144,7 @@ export async function trackSessionExpiry(
   try {
     await redis.zadd(EXPIRY_TRACKING_KEY, expiryTime, sessionKey);
     logger.info(
-      `[Session: ${sessionKey}] Added to expiry tracking (expires at ${new Date(
-        expiryTime
-      )})`
+      `[Session: ${sessionKey}] Reset Expiry at ${new Date(expiryTime)})`
     );
   } catch (error) {
     logger.error(

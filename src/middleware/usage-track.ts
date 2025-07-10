@@ -28,7 +28,7 @@ export default async function usageTrack(
     overrideMaximumRequestCount || Number(jwtPayload.mnr) || 1000; // For testing purpose override the maximum request count
 
   logger.info({
-    msg: `[Session: ${jwtPayload.jti}] Threshold Config`,
+    msg: `Threshold Config`,
     MNR: maximumRequestCount,
     SPR: perRequestAmount,
     MaxDuration: sessionDurationSeconds,
@@ -49,11 +49,7 @@ export default async function usageTrack(
   let totalChargedAmount = 0;
   const sessionExists = await manager.sessionExists();
   if (!sessionExists) {
-    logger.info({
-      event: "new_session",
-      sessionId: jwtPayload.jti,
-      msg: "🆕 New session created for token",
-    });
+    logger.info(`🆕 New session created for token: ${jwtPayload.jti}`);
 
     // Create a new session
     await manager.createNewSession(req.skyfireToken);
@@ -78,16 +74,12 @@ export default async function usageTrack(
         `Initial charge: charged ${perRequestAmount}`
       );
     } catch (error) {
-      logger.error({
-        event: "token_charge_failed",
-        sessionId: jwtPayload.jti,
-        error,
-        msg: "💸 Error charging token",
-      });
+      logger.error(`[Session: ${jwtPayload.jti}] Error charging token:`, error);
       res.status(402).json({
         error: `Payment Required: Error charging Token`,
         reason: "insufficient_balance",
       });
+      return;
     }
   }
 
@@ -106,7 +98,8 @@ export default async function usageTrack(
     await logSession(
       jwtPayload,
       manager,
-      `[Threshold reached] Error:402: hasReachedRemainingBalance=${hasReachedRemainingBalance} hasReachedMaximumRequestCount=${hasReachedMaximumRequestCount}`
+      `[Threshold reached] Error:402: hasReachedRemainingBalance=${hasReachedRemainingBalance} hasReachedMaximumRequestCount=${hasReachedMaximumRequestCount}`,
+      "warn"
     );
 
     // Check if user owes any accumulated amount
@@ -127,23 +120,16 @@ export default async function usageTrack(
         await manager.updateRemainingBalance(remainingBalance);
 
         totalChargedAmount = accumulated;
-        logger.info({
-          event: "token_charged",
-          sessionId: jwtPayload.jti,
-          amount: accumulated,
-          msg: "💸 Successfully charged token",
-        });
       } catch (error) {
-        logger.error({
-          event: "token_charge_failed",
-          sessionId: jwtPayload.jti,
-          error,
-          msg: "💸 Error charging token",
-        });
+        logger.error(
+          `[Session: ${jwtPayload.jti}] Error charging token:`,
+          error
+        );
         res.status(402).json({
           error: `Payment Required: Error charging Token`,
           reason: "insufficient_balance",
         });
+        return;
       }
     }
 
@@ -201,6 +187,7 @@ export default async function usageTrack(
           error: `Payment Required: Error charging Token`,
           reason: "insufficient_balance",
         });
+        return;
       }
     }
 
@@ -292,7 +279,8 @@ async function makePaymentHeaders(
 async function logSession(
   jwtPayload: any,
   manager: UsageSessionManager,
-  additionalInfo?: string
+  additionalInfo?: string,
+  level: "info" | "warn" | "error" = "info"
 ): Promise<void> {
   const [count, accumulated, remainingBalance] = await Promise.all([
     manager.getRequestCount(),
@@ -308,9 +296,11 @@ async function logSession(
     remainingBalance: remainingBalance?.toString() || "0",
   };
 
-  if (additionalInfo) {
-    logger.info({ ...logData, additionalInfo });
+  if (level === "error") {
+    logger.error(logData, additionalInfo);
+  } else if (level === "warn") {
+    logger.warn(logData, additionalInfo);
   } else {
-    logger.info(logData);
+    logger.info(logData, additionalInfo);
   }
 }

@@ -8,6 +8,11 @@ interface ChargeTokenResponse {
   remainingBalance: string;
 }
 
+interface ChargeTokenError {
+  code: string;
+  message: string;
+}
+
 export async function chargeToken(
   skyfireToken: string,
   amountToCharge: number,
@@ -26,7 +31,11 @@ export async function chargeToken(
       }),
     });
 
-    const data = await response.json();
+    const data = (await response.json()) as ChargeTokenError;
+
+    if (data.code === "PAYMENT_ERROR") {
+      throw new Error(`Payment Error: ${data.code} ${data.message}`);
+    }
 
     if (sessionId) {
       logger.info({
@@ -44,7 +53,7 @@ export async function chargeToken(
       });
     }
 
-    return data as ChargeTokenResponse;
+    return data as unknown as ChargeTokenResponse;
   } catch (err: unknown) {
     if (sessionId) {
       logger.error({
