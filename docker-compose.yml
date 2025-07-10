@@ -1,6 +1,17 @@
 version: "3.8"
 
 services:
+  app:
+    build: .
+    ports:
+      - "4000:4000"
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      - redis
+    restart: unless-stopped
+
   redis:
     image: redis:7-alpine
     container_name: proxy-redis
@@ -8,7 +19,7 @@ services:
       - "6379:6379"
     volumes:
       - redis-data:/data
-    command: redis-server --appendonly yes
+    command: redis-server --appendonly yes --notify-keyspace-events Ex
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s

@@ -3,10 +3,11 @@ import { hasVerifiedJwt, isBotRequest } from "../type";
 import { UsageSessionManager } from "../utils/usage-session-manager";
 import { chargeToken } from "../services/skyfire-api";
 
+const batchAmountThreshold = Number(process.env.BATCH_AMOUNT_THRESHOLD) || 0.1; // 0.1 USD default
 const sessionDurationSeconds = Number(process.env.REDIS_SESSION_EXPIRY) || 300; // 5 min default
 const overrideMaximumRequestCount = Number(
   process.env.OVERRIDE_MAXIMUM_REQUEST_COUNT
-);
+); // MNR: Maximum Request Count
 
 export default async function usageTrack(
   req: Request,
@@ -18,26 +19,6 @@ export default async function usageTrack(
     next();
     return;
   }
-
-  /**
-   * 1. Initialize the usage session manager
-   * => Just initializing the session manager. ( not creating a new session )
-   * 2. If session doesn't exist, create a new session, charge the token first and get the remaining balance. Update the session with the remaining balance.
-   * => Do this because we don't know the remainding balance unless we get the balance info from API, or rather just charnge and see the remaining balance.
-   *
-   * 4. If the remaining balance is insufficient, charge the token.
-   * 5. If the remaining balance is sufficient, update the usage session.
-   * 6. If the request count has reached the maximum allowed requests, charge the token.
-   * 7. Reset the accumulated amount.
-   * 8. Log the session counts (for debugging)
-   *
-   * 3. Check if the remaining balance is insufficient for the next request
-   * 4. Update the usage session
-   * 5. Check if the request count has reached the maximum allowed requests
-   * 6. Charge the token
-   * 7. Reset the accumulated amount
-   * 8. Log the session counts (for debugging)
-   */
 
   const jwtPayload = req.decodedJWT;
   const redisKey = `session:${jwtPayload.jti}`;
@@ -55,11 +36,13 @@ export default async function usageTrack(
     redisKey,
     perRequestAmount,
     maximumRequestCount,
-    sessionDurationSeconds
+    sessionDurationSeconds,
+    batchAmountThreshold
   );
 
   // If the session is new, charge the token first and get the remaining balance
   let initialCharge = false;
+  let totalChargedAmount = 0;
   const sessionExists = await manager.sessionExists();
   if (!sessionExists) {
     console.log("New session created for token", jwtPayload.jti);
@@ -73,6 +56,7 @@ export default async function usageTrack(
     ); // Charge the token
 
     initialCharge = true;
+    totalChargedAmount = perRequestAmount;
 
     // Reset accumulated amount
     await manager.resetAccumulated();
@@ -106,7 +90,6 @@ export default async function usageTrack(
     // Check if user owes any accumulated amount
     // Note: Leave this logic here to just make sure the user is charged for the accumulated amount.
     const accumulated = await manager.getAccumulatedAmount();
-    let chargeInfo = null;
 
     // If there is an accumulated amount, charge the token before returning the response.
     if (accumulated > 0) {
@@ -119,16 +102,13 @@ export default async function usageTrack(
       await manager.resetAccumulated();
       await manager.updateRemainingBalance(remainingBalance);
 
-      chargeInfo = {
-        charged: accumulated,
-        remainingBalance: remainingBalance,
-      };
+      totalChargedAmount = accumulated;
     }
 
     // 402 Payment Required: token usage exceeded. Blocked from returning the response.
 
-    const hasCharges = chargeInfo?.charged && chargeInfo.charged > 0;
-    await makePaymentHeaders(res, manager, chargeInfo?.charged);
+    const hasCharges = totalChargedAmount > 0;
+    await makePaymentHeaders(res, manager, totalChargedAmount);
 
     if (hasReachedRemainingBalance) {
       res.status(402).json({
@@ -152,7 +132,32 @@ export default async function usageTrack(
   // Update the usage session count, accumulated amount, and remaining balance.
   await manager.updateUsage({ skipAccumulation: initialCharge }); // Skip accumulation if it's already charged for the initial request.
 
-  // // // Check if the request count has reached the maximum allowed requests
+  const hasReachedBatch = await manager.hasReachedBatchThreshold();
+  if (hasReachedBatch) {
+    // Handle batch threshold reached logic
+    // e.g., charge the accumulated amount
+    const accumulated = await manager.getAccumulatedAmount();
+    if (accumulated && accumulated > 0) {
+      // Charge accumulated amount
+      const { remainingBalance } = await chargeToken(
+        req.skyfireToken,
+        accumulated
+      );
+      // Reset accumulated amount
+      await manager.resetAccumulated();
+      await manager.updateRemainingBalance(remainingBalance);
+
+      totalChargedAmount = accumulated;
+    }
+
+    await logSession(
+      jwtPayload,
+      manager,
+      `Threashold reached: Batch amount threshold reached. We charged the accumulated amount.`
+    );
+  }
+
+  // Check if the request count has reached the maximum allowed requests
   // if (await manager.hasReachedMaximumRequestCount()) {
   //   await logSession(
   //     jwtPayload,
@@ -183,7 +188,7 @@ export default async function usageTrack(
   await manager.storeSessionDataForExpiration();
 
   // Add payment info to response headers
-  await makePaymentHeaders(res, manager);
+  await makePaymentHeaders(res, manager, totalChargedAmount);
 
   await logSession(jwtPayload, manager);
 

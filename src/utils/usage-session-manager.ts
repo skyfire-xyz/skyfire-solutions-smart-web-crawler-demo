@@ -1,6 +1,10 @@
 // src/utils/UsageSessionManager.ts
 
 import { redis } from "../config/redis";
+import {
+  trackSessionExpiry,
+  removeSessionFromTracking,
+} from "./session-expiry-monitor";
 
 /**
  * Manages usage session, request counting, and batch charge thresholds for a token/session.
@@ -10,17 +14,20 @@ export class UsageSessionManager {
   public perRequestAmount: number;
   public maximumRequestCount: number;
   public sessionDuration: number;
+  public batchAmountThreshold: number;
 
   constructor(
     redisKey: string,
     perRequestAmount: number,
     maximumRequestCount: number,
-    sessionDuration: number
+    sessionDuration: number,
+    batchAmountThreshold: number
   ) {
     this.redisKey = redisKey;
     this.perRequestAmount = perRequestAmount;
     this.maximumRequestCount = maximumRequestCount;
     this.sessionDuration = sessionDuration;
+    this.batchAmountThreshold = batchAmountThreshold;
   }
 
   async createNewSession(jwtToken: string): Promise<void> {
@@ -33,6 +40,10 @@ export class UsageSessionManager {
     multi.expire(this.redisKey, this.sessionDuration);
 
     await multi.exec();
+
+    // Track session expiry
+    const expiryTime = Date.now() + this.sessionDuration * 1000;
+    await trackSessionExpiry(this.redisKey, expiryTime);
   }
 
   /**
@@ -84,6 +95,10 @@ export class UsageSessionManager {
       }
     }
 
+    // Update expiry tracking
+    const expiryTime = Date.now() + this.sessionDuration * 1000;
+    await trackSessionExpiry(this.redisKey, expiryTime);
+
     return { count, accumulated, isNewSession: !sessionExists };
   }
 
@@ -100,7 +115,6 @@ export class UsageSessionManager {
   async resetAccumulated(): Promise<void> {
     const multi = redis.multi();
     multi.hset(this.redisKey, "accumulated", "0");
-    multi.hset(this.redisKey, "count", "0");
     await multi.exec();
   }
 
@@ -180,6 +194,19 @@ export class UsageSessionManager {
       balance === 0 ||
       balance <= this.perRequestAmount + accumulated
     );
+  }
+
+  /**
+   * Checks if the accumulated amount has reached the batch threshold.
+   */
+  async hasReachedBatchThreshold(): Promise<boolean> {
+    try {
+      const accumulated = await this.getAccumulatedAmount();
+      return accumulated >= this.batchAmountThreshold;
+    } catch (err) {
+      console.error("Error checking batch threshold:", err);
+      return false;
+    }
   }
 
   /**
@@ -277,6 +304,19 @@ export class UsageSessionManager {
       }
     } catch (err) {
       console.error("Error storing session data for expiration:", err);
+    }
+  }
+
+  /**
+   * Manually delete session and remove from tracking
+   */
+  async deleteSession(): Promise<void> {
+    try {
+      await redis.del(this.redisKey);
+      await removeSessionFromTracking(this.redisKey);
+      console.log(`Manually deleted session: ${this.redisKey}`);
+    } catch (err) {
+      console.error("Error deleting session:", err);
     }
   }
 }

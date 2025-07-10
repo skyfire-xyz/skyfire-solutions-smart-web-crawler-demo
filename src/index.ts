@@ -3,7 +3,7 @@ import cors from "cors";
 import helmet from "helmet";
 import dotenv from "dotenv";
 import { connectRedis, disconnectRedis } from "./config/redis";
-import { setupExpirationSubscriber } from "./config/redis-subscriber";
+import { startExpiryMonitor } from "./utils/session-expiry-monitor";
 import usageTrack from "./middleware/usage-track";
 import verifyHeader from "./middleware/verify-header";
 import { createProxyMiddleware } from "http-proxy-middleware";
@@ -44,7 +44,9 @@ app.use(
 const startServer = async (): Promise<void> => {
   try {
     await connectRedis();
-    await setupExpirationSubscriber();
+
+    // Start session expiry monitor (works with any Redis service)
+    await startExpiryMonitor();
 
     app.listen(PORT, () => {
       console.log(`Proxy server running on port ${PORT}`);
