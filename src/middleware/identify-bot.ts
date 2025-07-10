@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { BotRequest } from "../type";
+import logger from "../utils/logger";
 
 export default function identifyBot(
   req: Request,
@@ -11,7 +12,11 @@ export default function identifyBot(
 
   if (testBotHeader && testBotHeader.toLowerCase() === "true") {
     (req as BotRequest).isBot = true;
-    console.log("Bot identified");
+    logger.info(
+      `[Bot] Bot identified - IP: ${req.ip}, User-Agent: ${req.get(
+        "User-Agent"
+      )}`
+    );
     return next();
   }
 

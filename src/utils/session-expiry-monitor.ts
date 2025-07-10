@@ -1,5 +1,6 @@
 import { redis } from "../config/redis";
 import { chargeToken } from "../services/skyfire-api";
+import logger from "./logger";
 
 const EXPIRY_TRACKING_KEY = "session_expiries";
 const MONITOR_INTERVAL =
@@ -19,30 +20,51 @@ async function handleSessionExpiration(sessionKey: string): Promise<void> {
 
       // Charge accumulated amount if any
       if (Number(accumulated) > 0 && jwtToken) {
-        console.log(
-          `Session expired: ${sessionKey}. Charging accumulated amount: ${accumulated}`
-        );
+        logger.info({
+          event: "session_expired",
+          sessionId: sessionKey,
+          msg: `⏰ Session expired. Charging accumulated amount: ${accumulated}`,
+        });
 
         try {
-          await chargeToken(jwtToken, Number(accumulated));
+          await chargeToken(jwtToken, Number(accumulated), sessionKey);
         } catch (error) {
-          console.error(
-            `Failed to charge accumulated amount for session ${sessionKey}:`,
-            error
-          );
+          logger.error({
+            event: "session_expiry_charge_failed",
+            sessionId: sessionKey,
+            error,
+            msg: "⏰ Failed to charge accumulated amount on session expiry",
+          });
         }
       } else {
-        console.log(`Session expired: ${sessionKey} - No accumulated amount.`);
+        logger.info({
+          event: "session_expired",
+          sessionId: sessionKey,
+          msg: "⏰ Session expired - No accumulated amount.",
+        });
       }
 
       // Clean up the data key
       await redis.del(dataKey);
-      console.log(`Cleaned up session data for: ${sessionKey}`);
+      logger.info({
+        event: "session_expiry_cleanup",
+        sessionId: sessionKey,
+        msg: "⏰ Cleaned up session data after expiry",
+      });
     } else {
-      console.log(`No session data found for: ${sessionKey}`);
+      logger.info({
+        event: "session_expiry_no_data",
+        sessionId: sessionKey,
+        msg: "⏰ No session data found on expiry",
+      });
     }
   } catch (error) {
-    console.error(`Error processing expired session ${sessionKey}:`, error);
+    logger.error({
+      event: "session_expiry_error",
+      sessionId: sessionKey,
+      error,
+      msg: "⏰ Error processing expired session",
+    });
   }
 }
 
@@ -71,14 +93,21 @@ async function processExpiredSessions(): Promise<void> {
 
           // Remove from tracking set
           await redis.zrem(EXPIRY_TRACKING_KEY, sessionKey);
-          console.log(`Removed ${sessionKey} from expiry tracking`);
+          logger.info({
+            event: "session_expiry_removed",
+            sessionId: sessionKey,
+            msg: "⏰ Removed from expiry tracking",
+          });
         }
       } catch (error) {
-        console.error(`Error processing expired session ${sessionKey}:`, error);
+        logger.error(
+          `[Session: ${sessionKey}] Error processing expired session:`,
+          error
+        );
       }
     }
   } catch (error) {
-    console.error("Error in processExpiredSessions:", error);
+    logger.error("Error in processExpiredSessions:", error);
   }
 }
 
@@ -94,11 +123,11 @@ export async function startExpiryMonitor(): Promise<void> {
     try {
       await processExpiredSessions();
     } catch (error) {
-      console.error("Error in session expiry monitor:", error);
+      logger.error("Error in session expiry monitor:", error);
     }
   }, MONITOR_INTERVAL);
 
-  console.log(
+  logger.info(
     `Session expiry monitor started - checking every ${
       MONITOR_INTERVAL / 1000
     } seconds`
@@ -114,13 +143,16 @@ export async function trackSessionExpiry(
 ): Promise<void> {
   try {
     await redis.zadd(EXPIRY_TRACKING_KEY, expiryTime, sessionKey);
-    console.log(
-      `Added ${sessionKey} to expiry tracking (expires at ${new Date(
+    logger.info(
+      `[Session: ${sessionKey}] Added to expiry tracking (expires at ${new Date(
         expiryTime
       )})`
     );
   } catch (error) {
-    console.error(`Error tracking session expiry for ${sessionKey}:`, error);
+    logger.error(
+      `[Session: ${sessionKey}] Error tracking session expiry:`,
+      error
+    );
   }
 }
 
@@ -132,8 +164,11 @@ export async function removeSessionFromTracking(
 ): Promise<void> {
   try {
     await redis.zrem(EXPIRY_TRACKING_KEY, sessionKey);
-    console.log(`Removed ${sessionKey} from expiry tracking`);
+    logger.info(`[Session: ${sessionKey}] Removed from expiry tracking`);
   } catch (error) {
-    console.error(`Error removing session from tracking: ${sessionKey}`, error);
+    logger.error(
+      `[Session: ${sessionKey}] Error removing session from tracking:`,
+      error
+    );
   }
 }

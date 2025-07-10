@@ -5,6 +5,7 @@ import {
   trackSessionExpiry,
   removeSessionFromTracking,
 } from "./session-expiry-monitor";
+import logger from "./logger";
 
 /**
  * Manages usage session, request counting, and batch charge thresholds for a token/session.
@@ -126,7 +127,10 @@ export class UsageSessionManager {
       const balance = await redis.hget(this.redisKey, "remainingBalance");
       return balance !== null ? Number(balance) : null;
     } catch (err) {
-      console.error("Error getting remaining balance:", err);
+      logger.error(
+        `[Session: ${this.redisKey}] Error getting remaining balance:`,
+        err
+      );
       return null;
     }
   }
@@ -139,7 +143,10 @@ export class UsageSessionManager {
       const count = await redis.hget(this.redisKey, "count");
       return count !== null ? Number(count) : 0;
     } catch (err) {
-      console.error("Error getting request count:", err);
+      logger.error(
+        `[Session: ${this.redisKey}] Error getting request count:`,
+        err
+      );
       return 0;
     }
   }
@@ -152,7 +159,10 @@ export class UsageSessionManager {
       const accumulated = await redis.hget(this.redisKey, "accumulated");
       return accumulated !== null ? Number(accumulated) : 0;
     } catch (err) {
-      console.error("Error getting accumulated amount:", err);
+      logger.error(
+        `[Session: ${this.redisKey}] Error getting accumulated amount:`,
+        err
+      );
       return 0;
     }
   }
@@ -164,7 +174,10 @@ export class UsageSessionManager {
       const exists = await redis.exists(this.redisKey);
       return exists === 1;
     } catch (err) {
-      console.error("Error checking if session exists:", err);
+      logger.error(
+        `[Session: ${this.redisKey}] Error checking if session exists:`,
+        err
+      );
       return false;
     }
   }
@@ -177,7 +190,10 @@ export class UsageSessionManager {
       const count = await this.getRequestCount();
       return count >= this.maximumRequestCount;
     } catch (err) {
-      console.error("Error checking maximum request count:", err);
+      logger.error(
+        `[Session: ${this.redisKey}] Error checking maximum request count:`,
+        err
+      );
       return false;
     }
   }
@@ -204,7 +220,10 @@ export class UsageSessionManager {
       const accumulated = await this.getAccumulatedAmount();
       return accumulated >= this.batchAmountThreshold;
     } catch (err) {
-      console.error("Error checking batch threshold:", err);
+      logger.error(
+        `[Session: ${this.redisKey}] Error checking batch threshold:`,
+        err
+      );
       return false;
     }
   }
@@ -224,7 +243,10 @@ export class UsageSessionManager {
 
       return timeDiff > sessionExpiryMs;
     } catch (err) {
-      console.error("Error checking session expiry:", err);
+      logger.error(
+        `[Session: ${this.redisKey}] Error checking session expiry:`,
+        err
+      );
       return false;
     }
   }
@@ -239,7 +261,10 @@ export class UsageSessionManager {
       const timeDiff = currentTime - lastRequestTime;
       return this.sessionDuration * 1000 - timeDiff;
     } catch (err) {
-      console.error("Error getting session expiry:", err);
+      logger.error(
+        `[Session: ${this.redisKey}] Error getting session expiry:`,
+        err
+      );
       return 0;
     }
   }
@@ -256,7 +281,10 @@ export class UsageSessionManager {
       const expirationTime = lastRequestTime + this.sessionDuration * 1000;
       return expirationTime;
     } catch (err) {
-      console.error("Error getting session expiration timestamp:", err);
+      logger.error(
+        `[Session: ${this.redisKey}] Error getting session expiration timestamp:`,
+        err
+      );
       return null;
     }
   }
@@ -269,7 +297,7 @@ export class UsageSessionManager {
       const jwt = await redis.hget(this.redisKey, "jwtToken");
       return jwt;
     } catch (err) {
-      console.error("Error getting JWT:", err);
+      logger.error(`[Session: ${this.redisKey}] Error getting JWT:`, err);
       return null;
     }
   }
@@ -303,7 +331,10 @@ export class UsageSessionManager {
         await redis.expire(dataKey, 3600);
       }
     } catch (err) {
-      console.error("Error storing session data for expiration:", err);
+      logger.error(
+        `[Session: ${this.redisKey}] Error storing session data for expiration:`,
+        err
+      );
     }
   }
 
@@ -314,9 +345,9 @@ export class UsageSessionManager {
     try {
       await redis.del(this.redisKey);
       await removeSessionFromTracking(this.redisKey);
-      console.log(`Manually deleted session: ${this.redisKey}`);
+      logger.info(`[Session: ${this.redisKey}] Manually deleted session`);
     } catch (err) {
-      console.error("Error deleting session:", err);
+      logger.error(`[Session: ${this.redisKey}] Error deleting session:`, err);
     }
   }
 }

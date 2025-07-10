@@ -8,6 +8,7 @@ import usageTrack from "./middleware/usage-track";
 import verifyHeader from "./middleware/verify-header";
 import { createProxyMiddleware } from "http-proxy-middleware";
 import identifyBot from "./middleware/identify-bot";
+import logger from "./utils/logger";
 
 dotenv.config();
 
@@ -49,22 +50,22 @@ const startServer = async (): Promise<void> => {
     await startExpiryMonitor();
 
     app.listen(PORT, () => {
-      console.log(`Proxy server running on port ${PORT}`);
+      logger.info(`Proxy server running on port ${PORT}`);
     });
   } catch (error) {
-    console.error("Failed to start server:", error);
+    logger.error("Failed to start server:", error);
     process.exit(1);
   }
 };
 
 process.on("SIGINT", async () => {
-  console.log("Shutting down gracefully...");
+  logger.info("Shutting down gracefully...");
   await disconnectRedis();
   process.exit(0);
 });
 
 process.on("SIGTERM", async () => {
-  console.log("Shutting down gracefully...");
+  logger.info("Shutting down gracefully...");
   await disconnectRedis();
   process.exit(0);
 });

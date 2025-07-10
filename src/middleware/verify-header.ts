@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { jwtVerify, createRemoteJWKSet, errors as joseErrors } from "jose";
 import { DecodedSkyfireJwt, isBotRequest } from "../type";
+import logger from "../utils/logger";
 
 const JWKS_URL =
   process.env.OFFICIAL_SKYFIRE_JWT_ISSUER + "/.well-known/jwks.json";
@@ -37,7 +38,7 @@ export default async function verifyHeader(
       algorithms: [JWT_ALGORITHM],
     });
 
-    console.log(payload, "JWT Payload");
+    logger.info(`[Session: ${(payload as any).jti}] JWT Payload:`, payload);
     if ((payload as any).ssi !== JWT_SSI) {
       res.status(401).json({ error: "Invalid SSI in token" });
       return;
@@ -50,7 +51,7 @@ export default async function verifyHeader(
     next();
     return;
   } catch (err: unknown) {
-    console.error("Error while verifying token: ", err);
+    logger.error("Error while verifying token: ", err);
     if (err instanceof joseErrors.JOSEError) {
       res.status(401).json({
         error: "Your JWT token is invalid",

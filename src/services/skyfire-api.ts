@@ -1,3 +1,5 @@
+import logger from "../utils/logger";
+
 const BACKEND_API_URL = process.env.BACKEND_API_URL;
 const SELLER_SKYFIRE_API_KEY = process.env.SELLER_SKYFIRE_API_KEY;
 
@@ -8,7 +10,8 @@ interface ChargeTokenResponse {
 
 export async function chargeToken(
   skyfireToken: string,
-  amountToCharge: number
+  amountToCharge: number,
+  sessionId?: string
 ): Promise<ChargeTokenResponse> {
   try {
     const response = await fetch(`${BACKEND_API_URL}/api/v1/tokens/charge`, {
@@ -25,11 +28,38 @@ export async function chargeToken(
 
     const data = await response.json();
 
-    console.log("Successfully charged token", data);
+    if (sessionId) {
+      logger.info({
+        event: "token_charged",
+        sessionId,
+        amount: amountToCharge,
+        msg: "💸 Successfully charged token",
+        data,
+      });
+    } else {
+      logger.info({
+        event: "token_charged",
+        msg: "💸 Successfully charged token",
+        data,
+      });
+    }
 
     return data as ChargeTokenResponse;
   } catch (err: unknown) {
-    console.error("Error while charging token: ", err);
+    if (sessionId) {
+      logger.error({
+        event: "token_charge_failed",
+        sessionId,
+        error: err,
+        msg: "💸 Error charging token",
+      });
+    } else {
+      logger.error({
+        event: "token_charge_failed",
+        error: err,
+        msg: "💸 Error charging token",
+      });
+    }
     throw err;
   }
 }
