@@ -50,23 +50,31 @@ export default async function usageTrack(
     // Create a new session
     await manager.createNewSession(req.skyfireToken);
 
-    const { remainingBalance } = await chargeToken(
-      req.skyfireToken,
-      perRequestAmount
-    ); // Charge the token
+    try {
+      const { remainingBalance } = await chargeToken(
+        req.skyfireToken,
+        perRequestAmount
+      ); // Charge the token
 
-    initialCharge = true;
-    totalChargedAmount = perRequestAmount;
+      initialCharge = true;
+      totalChargedAmount = perRequestAmount;
 
-    // Reset accumulated amount
-    await manager.resetAccumulated();
-    await manager.updateRemainingBalance(remainingBalance);
+      // Reset accumulated amount
+      await manager.resetAccumulated();
+      await manager.updateRemainingBalance(remainingBalance);
 
-    await logSession(
-      jwtPayload,
-      manager,
-      `Initial charge: charged ${perRequestAmount}`
-    );
+      await logSession(
+        jwtPayload,
+        manager,
+        `Initial charge: charged ${perRequestAmount}`
+      );
+    } catch (error) {
+      console.error("Error charging token:", error);
+      res.status(402).json({
+        error: `Payment Required: Error charging Token`,
+        reason: "insufficient_balance",
+      });
+    }
   }
 
   // Check if threashold is reached
@@ -93,16 +101,24 @@ export default async function usageTrack(
 
     // If there is an accumulated amount, charge the token before returning the response.
     if (accumulated > 0) {
-      // Charge the token
-      const { remainingBalance } = await chargeToken(
-        req.skyfireToken,
-        accumulated
-      );
-      // Reset accumulated amount
-      await manager.resetAccumulated();
-      await manager.updateRemainingBalance(remainingBalance);
+      try {
+        // Charge the token
+        const { remainingBalance } = await chargeToken(
+          req.skyfireToken,
+          accumulated
+        );
+        // Reset accumulated amount
+        await manager.resetAccumulated();
+        await manager.updateRemainingBalance(remainingBalance);
 
-      totalChargedAmount = accumulated;
+        totalChargedAmount = accumulated;
+      } catch (error) {
+        console.error("Error charging token:", error);
+        res.status(402).json({
+          error: `Payment Required: Error charging Token`,
+          reason: "insufficient_balance",
+        });
+      }
     }
 
     // 402 Payment Required: token usage exceeded. Blocked from returning the response.
@@ -138,16 +154,24 @@ export default async function usageTrack(
     // e.g., charge the accumulated amount
     const accumulated = await manager.getAccumulatedAmount();
     if (accumulated && accumulated > 0) {
-      // Charge accumulated amount
-      const { remainingBalance } = await chargeToken(
-        req.skyfireToken,
-        accumulated
-      );
-      // Reset accumulated amount
-      await manager.resetAccumulated();
-      await manager.updateRemainingBalance(remainingBalance);
+      try {
+        // Charge accumulated amount
+        const { remainingBalance } = await chargeToken(
+          req.skyfireToken,
+          accumulated
+        );
+        // Reset accumulated amount
+        await manager.resetAccumulated();
+        await manager.updateRemainingBalance(remainingBalance);
 
-      totalChargedAmount = accumulated;
+        totalChargedAmount = accumulated;
+      } catch (error) {
+        console.error("Error charging token:", error);
+        res.status(402).json({
+          error: `Payment Required: Error charging Token`,
+          reason: "insufficient_balance",
+        });
+      }
     }
 
     await logSession(
