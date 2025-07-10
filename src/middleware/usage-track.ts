@@ -250,6 +250,10 @@ async function makePaymentHeaders(
     "X-Payment-Session-Expires-At",
     sessionExpiry?.toString() || "0"
   );
+  res.setHeader(
+    "X-Payment-Session-Batch-Threshold",
+    manager.batchAmountThreshold.toString()
+  );
 }
 
 /**
