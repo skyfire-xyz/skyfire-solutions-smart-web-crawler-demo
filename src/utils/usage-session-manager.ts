@@ -205,10 +205,14 @@ export class UsageSessionManager {
     const balance = await this.getRemainingBalance();
     const accumulated = await this.getAccumulatedAmount();
 
+    logger.error(
+      `[Session: ${this.redisKey}] hasReachedRemainingBalance: balance=${balance}, accumulated=${accumulated}, perRequestAmount=${this.perRequestAmount}, batchAmountThreshold=${this.batchAmountThreshold}`
+    );
+
     return (
       balance === null ||
       balance === 0 ||
-      balance <= this.perRequestAmount + accumulated
+      balance < this.perRequestAmount + accumulated
     );
   }
 

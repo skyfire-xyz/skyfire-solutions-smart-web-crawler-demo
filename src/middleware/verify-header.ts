@@ -62,6 +62,7 @@ export default async function verifyHeader(
     }
     res.status(401).json({
       error: "Something went wrong while verifying your JWT token",
+      errorCode: "JWT_VERIFICATION_ERROR",
     });
     return;
   }

@@ -1,5 +1,4 @@
 module.exports = {
-  preset: 'ts-jest',
   testEnvironment: 'node',
   roots: ['<rootDir>/src'],
   testMatch: [
@@ -14,5 +13,8 @@ module.exports = {
   ],
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   testTimeout: 30000,
-  verbose: true
-}; 
+  verbose: true,
+  transformIgnorePatterns: [
+    'node_modules/(?!(jose)/)'
+  ]
+};
