@@ -23,7 +23,7 @@ if (apiKey && ddEnabled) {
   );
 }
 
-const env = process.env.NODE_ENV || "dev";
+const env = process.env.DD_ENV || "dev";
 const logger = pino({
   level: process.env.LOG_LEVEL || "info",
   base: { env },
