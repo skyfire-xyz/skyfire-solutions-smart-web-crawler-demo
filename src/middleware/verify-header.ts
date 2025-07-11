@@ -51,7 +51,7 @@ export default async function verifyHeader(
     next();
     return;
   } catch (err: unknown) {
-    logger.error("Error while verifying token: ", err);
+    logger.warn("Error while verifying token: ", err);
     if (err instanceof joseErrors.JOSEError) {
       res.status(401).json({
         error: "Your JWT token is invalid",

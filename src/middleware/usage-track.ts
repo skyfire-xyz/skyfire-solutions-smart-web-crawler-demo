@@ -179,7 +179,7 @@ export default async function usageTrack(
 
         totalChargedAmount = accumulated;
       } catch (error) {
-        logger.error(
+        logger.warn(
           `[Session: ${jwtPayload.jti}] Error charging token:`,
           error
         );

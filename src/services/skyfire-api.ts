@@ -56,14 +56,14 @@ export async function chargeToken(
     return data as unknown as ChargeTokenResponse;
   } catch (err: unknown) {
     if (sessionId) {
-      logger.error({
+      logger.warn({
         event: "token_charge_failed",
         sessionId,
         error: err,
         msg: "💸 Error charging token",
       });
     } else {
-      logger.error({
+      logger.warn({
         event: "token_charge_failed",
         error: err,
         msg: "💸 Error charging token",

@@ -8,7 +8,8 @@ import usageTrack from "./middleware/usage-track";
 import verifyHeader from "./middleware/verify-header";
 import { createProxyMiddleware } from "http-proxy-middleware";
 import identifyBot from "./middleware/identify-bot";
-import logger from "./utils/logger";
+import logger, { attachLogTraceContext } from "./utils/logger";
+import "./utils/dd-agent";
 
 dotenv.config();
 
@@ -28,6 +29,7 @@ app.use(identifyBot);
 
 // Step 1: Verify Skyfire Token in header
 app.use(verifyHeader); // if you have JWT verification
+app.use(attachLogTraceContext);
 
 // Step 2: Track usage and Charge
 app.use(usageTrack);
