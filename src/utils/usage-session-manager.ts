@@ -229,47 +229,6 @@ export class UsageSessionManager {
   }
 
   /**
-   * Checks if the session has expired based on last activity.
-   */
-  async hasSessionExpired(): Promise<boolean> {
-    try {
-      const lastRequest = await redis.hget(this.redisKey, "lastRequest");
-      if (!lastRequest) return false;
-
-      const lastRequestTime = Number(lastRequest);
-      const currentTime = Date.now();
-      const timeDiff = currentTime - lastRequestTime;
-      const sessionExpiryMs = this.sessionDuration * 1000;
-
-      return timeDiff > sessionExpiryMs;
-    } catch (err) {
-      logger.error(
-        `[Session: ${this.redisKey}] Error checking session expiry:`,
-        err
-      );
-      return false;
-    }
-  }
-
-  async getSessionExpiry(): Promise<number> {
-    try {
-      const lastRequest = await redis.hget(this.redisKey, "lastRequest");
-      if (!lastRequest) return 0;
-
-      const lastRequestTime = Number(lastRequest);
-      const currentTime = Date.now();
-      const timeDiff = currentTime - lastRequestTime;
-      return this.sessionDuration * 1000 - timeDiff;
-    } catch (err) {
-      logger.error(
-        `[Session: ${this.redisKey}] Error getting session expiry:`,
-        err
-      );
-      return 0;
-    }
-  }
-
-  /**
    * Gets the actual expiration timestamp (Unix timestamp in milliseconds)
    */
   async getSessionExpirationTimestamp(): Promise<number | null> {
