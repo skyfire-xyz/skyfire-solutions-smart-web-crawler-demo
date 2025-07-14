@@ -92,7 +92,7 @@ export class UsageSessionManager {
           Array.isArray(accumulatedRes) &&
           typeof accumulatedRes[1] === "string"
         ) {
-          accumulated = this.parseFloatSafe(accumulatedRes[1]);
+          accumulated = Number(accumulatedRes[1]);
         }
       } else {
         // If skipping accumulation, get the current accumulated amount

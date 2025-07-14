@@ -78,7 +78,25 @@ describe("Bot Protection Integration Tests", () => {
       const text = await response.text();
       body = text;
     }
-    return { status: response.status, body };
+
+    // Capture important headers
+    const responseHeaders = {
+      "X-Payment-Charged": response.headers.get("X-Payment-Charged"),
+      "X-Payment-Session-Count": response.headers.get(
+        "X-Payment-Session-Count"
+      ),
+      "X-Payment-Session-Accumulated-Amount": response.headers.get(
+        "X-Payment-Session-Accumulated-Amount"
+      ),
+      "X-Payment-Session-Remaining-Balance": response.headers.get(
+        "X-Payment-Session-Remaining-Balance"
+      ),
+      "X-Payment-Session-Batch-Threshold": response.headers.get(
+        "X-Payment-Session-Batch-Threshold"
+      ),
+    };
+
+    return { status: response.status, body, headers: responseHeaders };
   };
 
   describe("Token Creation and Validation", () => {
@@ -148,5 +166,90 @@ describe("Bot Protection Integration Tests", () => {
       expect(response.body.isBot).toBe(true);
       expect(response.body.hasToken).toBe(true);
     }, 15000);
+  });
+
+  describe("Batch Charging Behavior with Shared Session", () => {
+    let sharedToken: string;
+
+    beforeAll(async () => {
+      // Create a shared token for all tests in this describe block
+      const tokenResponse = await fetch(
+        `${process.env.BACKEND_API_URL}/api/v1/tokens`,
+        {
+          method: "POST",
+          headers: {
+            "skyfire-api-key": process.env.SKYFIRE_API_KEY,
+            "content-type": "application/json",
+          },
+          body: JSON.stringify({
+            type: "pay",
+            buyerTag: "",
+            tokenAmount: "0.01",
+            sellerServiceId: process.env.OFFICIAL_SKYFIRE_EXPECTED_SSI,
+            expiresAt: Math.floor(Date.now() / 1000) + 300, // 5 minutes from now
+          }),
+        }
+      );
+
+      expect(tokenResponse.status).toBe(200);
+      const data = (await tokenResponse.json()) as any;
+      sharedToken = data.token;
+    });
+
+    test("should get charged 0.01 for the first request", async () => {
+      const response = await makeRequest({
+        "x-isbot": "true",
+        "skyfire-pay-id": sharedToken,
+      });
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.isBot).toBe(true);
+      expect(response.body.hasToken).toBe(true);
+    });
+
+    test("should make another 9 successful requests", async () => {
+      const responses = [];
+
+      // Make exactly 10 requests
+      for (let i = 0; i < 9; i++) {
+        const response = await makeRequest({
+          "x-isbot": "true",
+          "skyfire-pay-id": sharedToken,
+        });
+
+        responses.push({
+          requestNumber: i + 1,
+          status: response.status,
+          body: response.body,
+          headers: response.headers,
+        });
+
+        // Small delay between requests
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+
+      // All requests should succeed
+      const successfulRequests = responses.filter((r) => r.status === 200);
+      expect(successfulRequests.length).toBe(9);
+
+      console.log(`✅ All ${successfulRequests.length} requests succeeded`);
+    }, 30000);
+
+    test("should next request fail with 402", async () => {
+      const response = await makeRequest({
+        "x-isbot": "true",
+        "skyfire-pay-id": sharedToken,
+      });
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Verify the batch threshold header
+      expect(response.status).toBe(402);
+      expect(response.body.error).toContain("Payment Required");
+      expect(response.headers["X-Payment-Session-Remaining-Balance"]).toBe("0");
+      expect(response.headers["X-Payment-Session-Accumulated-Amount"]).toBe(
+        "0"
+      );
+    }, 30000);
   });
 });
