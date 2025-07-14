@@ -1,7 +1,7 @@
 import tracer from "dd-trace";
 
 tracer.init({
-  service: "crawler-bot-protection",
+  service: "skyfire-solutions-crawler-bot-protection-proxy",
   env: process.env.DD_ENV || "dev",
   version: process.env.DD_VERSION,
   hostname: process.env.DD_AGENT_HOST, // sets the agent host

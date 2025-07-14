@@ -1,5 +1,5 @@
 {
-  "name": "crawler-bot-protection",
+  "name": "skyfire-solutions-crawler-bot-protection-proxy",
   "version": "1.0.0",
   "description": "Node.js/Express proxy service with Redis-based bot protection and usage tracking",
   "main": "dist/index.js",

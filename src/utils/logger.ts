@@ -12,7 +12,7 @@ const apiKey = process.env.DD_API_KEY!;
 const ddOptions = {
   api_key: apiKey, // <-- use api_key, not apiKey
   ddsource: "nodejs",
-  service: "crawler-bot-protection",
+  service: "skyfire-solutions-crawler-bot-protection-proxy",
   ddtags: `env:${process.env.DD_ENV || "dev"}`,
 };
 
