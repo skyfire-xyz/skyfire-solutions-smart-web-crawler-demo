@@ -31,6 +31,10 @@ export class UsageSessionManager {
     this.batchAmountThreshold = batchAmountThreshold;
   }
 
+  private parseFloatSafe(value: number): number {
+    return Math.round(value * 1000000) / 1000000;
+  }
+
   async createNewSession(jwtToken: string): Promise<void> {
     const multi = redis.multi();
     multi.hset(this.redisKey, "jwtToken", jwtToken);
@@ -88,7 +92,7 @@ export class UsageSessionManager {
           Array.isArray(accumulatedRes) &&
           typeof accumulatedRes[1] === "string"
         ) {
-          accumulated = Number(accumulatedRes[1]);
+          accumulated = this.parseFloatSafe(accumulatedRes[1]);
         }
       } else {
         // If skipping accumulation, get the current accumulated amount
@@ -157,6 +161,7 @@ export class UsageSessionManager {
   async getAccumulatedAmount(): Promise<number> {
     try {
       const accumulated = await redis.hget(this.redisKey, "accumulated");
+      logger.debug(`!!!!!! getAccumulatedAmount: accumulated=${accumulated}`);
       return accumulated !== null ? Number(accumulated) : 0;
     } catch (err) {
       logger.error(
@@ -204,16 +209,15 @@ export class UsageSessionManager {
   async hasReachedRemainingBalance(): Promise<boolean> {
     const balance = await this.getRemainingBalance();
     const accumulated = await this.getAccumulatedAmount();
+    const requiredAmount = this.parseFloatSafe(
+      this.perRequestAmount + accumulated
+    );
 
     logger.error(
       `[Session: ${this.redisKey}] hasReachedRemainingBalance: balance=${balance}, accumulated=${accumulated}, perRequestAmount=${this.perRequestAmount}, batchAmountThreshold=${this.batchAmountThreshold}`
     );
 
-    return (
-      balance === null ||
-      balance === 0 ||
-      balance < this.perRequestAmount + accumulated
-    );
+    return balance === null || balance === 0 || balance < requiredAmount;
   }
 
   /**
