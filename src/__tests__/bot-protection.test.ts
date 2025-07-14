@@ -96,6 +96,12 @@ describe("Bot Protection Integration Tests", () => {
       "X-Payment-Session-Batch-Threshold": response.headers.get(
         "X-Payment-Session-Batch-Threshold"
       ),
+      "X-Payment-Session-Token-MNR": response.headers.get(
+        "X-Payment-Session-Token-MNR"
+      ),
+      "X-Payment-Session-Expires-At": response.headers.get(
+        "X-Payment-Session-Expires-At"
+      ),
     };
 
     return { status: response.status, body, headers: responseHeaders };
@@ -370,4 +376,75 @@ describe("Bot Protection Integration Tests", () => {
       expect(successfulRequests.length).toBe(4);
     });
   });
+
+  // describe("Maximum Request Count Tests MNR", () => {
+  //   let originalThreshold: string | undefined;
+  //   let sharedToken: string;
+
+  //   beforeAll(async () => {
+  //     originalThreshold = process.env.OVERRIDE_MAXIMUM_REQUEST_COUNT;
+  //     process.env.OVERRIDE_MAXIMUM_REQUEST_COUNT = "5";
+
+  //     // Create a shared token for all tests in this describe block
+  //     const tokenResponse = await fetch(
+  //       `${process.env.BACKEND_API_URL}/api/v1/tokens`,
+  //       {
+  //         method: "POST",
+  //         headers: {
+  //           "skyfire-api-key": process.env.SKYFIRE_API_KEY,
+  //           "content-type": "application/json",
+  //         },
+  //         body: JSON.stringify({
+  //           type: "pay",
+  //           buyerTag: "",
+  //           tokenAmount: "0.01",
+  //           sellerServiceId: process.env.OFFICIAL_SKYFIRE_EXPECTED_SSI,
+  //           expiresAt: Math.floor(Date.now() / 1000) + 300, // 5 minutes from now
+  //         }),
+  //       }
+  //     );
+
+  //     expect(tokenResponse.status).toBe(200);
+  //     const data = (await tokenResponse.json()) as any;
+  //     sharedToken = data.token;
+  //   });
+
+  //   afterAll(() => {
+  //     if (originalThreshold !== undefined) {
+  //       process.env.OVERRIDE_MAXIMUM_REQUEST_COUNT = originalThreshold;
+  //     } else {
+  //       delete process.env.OVERRIDE_MAXIMUM_REQUEST_COUNT;
+  //     }
+  //   });
+
+  //   test("should work for first 5 requests", async () => {
+  //     // Your test code
+
+  //     const responses = [];
+
+  //     // Make exactly 5 requests
+  //     for (let i = 0; i < 5; i++) {
+  //       const response = await makeRequest({
+  //         "x-isbot": "true",
+  //         "skyfire-pay-id": sharedToken,
+  //       });
+
+  //       responses.push({
+  //         requestNumber: i + 1,
+  //         status: response.status,
+  //         body: response.body,
+  //         headers: response.headers,
+  //       });
+
+  //       // Small delay between requests
+  //       await new Promise((resolve) => setTimeout(resolve, 100));
+  //     }
+
+  //     expect(responses[0].headers["X-Payment-Session-Token-MNR"]).toBe("10");
+
+  //     // All requests should succeed
+  //     const successfulRequests = responses.filter((r) => r.status === 200);
+  //     expect(successfulRequests.length).toBe(5);
+  //   });
+  // });
 });
