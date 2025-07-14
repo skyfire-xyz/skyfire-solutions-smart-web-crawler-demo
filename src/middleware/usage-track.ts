@@ -4,17 +4,22 @@ import { UsageSessionManager } from "../utils/usage-session-manager";
 import { chargeToken } from "../services/skyfire-api";
 import logger from "../utils/logger";
 
-const batchAmountThreshold = Number(process.env.BATCH_AMOUNT_THRESHOLD) || 0.1; // 0.1 USD default
-const sessionDurationSeconds = Number(process.env.REDIS_SESSION_EXPIRY) || 300; // 5 min default
-const overrideMaximumRequestCount = Number(
-  process.env.OVERRIDE_MAXIMUM_REQUEST_COUNT
-); // MNR: Maximum Request Count
+// Environment variables will be read inside the function for test flexibility
 
 export default async function usageTrack(
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<void> {
+  // Read environment variables inside the function for test flexibility
+  const batchAmountThreshold =
+    Number(process.env.BATCH_AMOUNT_THRESHOLD) || 0.1;
+  const sessionDurationSeconds =
+    Number(process.env.REDIS_SESSION_EXPIRY) || 300;
+  const overrideMaximumRequestCount = Number(
+    process.env.OVERRIDE_MAXIMUM_REQUEST_COUNT
+  );
+
   // Only process authenticated bot requests
   if (!isBotRequest(req) || !hasVerifiedJwt(req)) {
     next();

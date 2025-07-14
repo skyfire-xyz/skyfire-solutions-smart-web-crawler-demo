@@ -30,6 +30,8 @@ describe("Bot Protection Integration Tests", () => {
   });
 
   beforeEach(() => {
+    console.log("this runs after!!");
+
     app = express();
     app.use(express.json());
 
@@ -251,5 +253,121 @@ describe("Bot Protection Integration Tests", () => {
         "0"
       );
     }, 30000);
+  });
+
+  describe("Batch Threshold Tests with 0.005 threshold", () => {
+    let originalThreshold: string | undefined;
+    let sharedToken: string;
+
+    beforeAll(async () => {
+      originalThreshold = process.env.BATCH_AMOUNT_THRESHOLD;
+      process.env.BATCH_AMOUNT_THRESHOLD = "0.005";
+
+      // Create a shared token for all tests in this describe block
+      const tokenResponse = await fetch(
+        `${process.env.BACKEND_API_URL}/api/v1/tokens`,
+        {
+          method: "POST",
+          headers: {
+            "skyfire-api-key": process.env.SKYFIRE_API_KEY,
+            "content-type": "application/json",
+          },
+          body: JSON.stringify({
+            type: "pay",
+            buyerTag: "",
+            tokenAmount: "0.01",
+            sellerServiceId: process.env.OFFICIAL_SKYFIRE_EXPECTED_SSI,
+            expiresAt: Math.floor(Date.now() / 1000) + 300, // 5 minutes from now
+          }),
+        }
+      );
+
+      expect(tokenResponse.status).toBe(200);
+      const data = (await tokenResponse.json()) as any;
+      sharedToken = data.token;
+    });
+
+    afterAll(() => {
+      if (originalThreshold !== undefined) {
+        process.env.BATCH_AMOUNT_THRESHOLD = originalThreshold;
+      } else {
+        delete process.env.BATCH_AMOUNT_THRESHOLD;
+      }
+    });
+
+    test("should work for first 5 requests", async () => {
+      // Your test code
+
+      const responses = [];
+
+      // Make exactly 5 requests
+      for (let i = 0; i < 5; i++) {
+        const response = await makeRequest({
+          "x-isbot": "true",
+          "skyfire-pay-id": sharedToken,
+        });
+
+        responses.push({
+          requestNumber: i + 1,
+          status: response.status,
+          body: response.body,
+          headers: response.headers,
+        });
+
+        // Small delay between requests
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+
+      expect(responses[0].headers["X-Payment-Session-Batch-Threshold"]).toBe(
+        "0.005"
+      );
+
+      // All requests should succeed
+      const successfulRequests = responses.filter((r) => r.status === 200);
+      expect(successfulRequests.length).toBe(5);
+    });
+
+    test("should get charged 0.005 on 6th request", async () => {
+      const response = await makeRequest({
+        "x-isbot": "true",
+        "skyfire-pay-id": sharedToken,
+      });
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.isBot).toBe(true);
+      expect(response.body.hasToken).toBe(true);
+
+      expect(response.headers["X-Payment-Charged"]).toBe("0.005");
+      expect(response.headers["X-Payment-Session-Accumulated-Amount"]).toBe(
+        "0"
+      );
+    });
+
+    test("should get 4 another successful requests", async () => {
+      const responses = [];
+
+      // Make exactly 4 requests
+      for (let i = 0; i < 4; i++) {
+        const response = await makeRequest({
+          "x-isbot": "true",
+          "skyfire-pay-id": sharedToken,
+        });
+
+        responses.push({
+          requestNumber: i + 1,
+          status: response.status,
+          body: response.body,
+          headers: response.headers,
+        });
+
+        // Small delay between requests
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+
+      // All requests should succeed
+      const successfulRequests = responses.filter((r) => r.status === 200);
+      expect(successfulRequests.length).toBe(4);
+    });
   });
 });
