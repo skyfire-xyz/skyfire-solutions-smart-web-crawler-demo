@@ -1,7 +1,8 @@
-import logger from "../utils/logger";
+import logger from "./logger";
 
-const BACKEND_API_URL = process.env.BACKEND_API_URL;
-const SELLER_SKYFIRE_API_KEY = process.env.SELLER_SKYFIRE_API_KEY;
+const SKYFIRE_API_URL =
+  process.env.SKYFIRE_API_URL || "https://app.skyfire.xyz";
+const SKYFIRE_SELLER_API_KEY = process.env.SKYFIRE_SELLER_API_KEY || "";
 
 interface ChargeTokenResponse {
   amountCharged: string;
@@ -19,11 +20,11 @@ export async function chargeToken(
   sessionId?: string
 ): Promise<ChargeTokenResponse> {
   try {
-    const response = await fetch(`${BACKEND_API_URL}/api/v1/tokens/charge`, {
+    const response = await fetch(`${SKYFIRE_API_URL}/api/v1/tokens/charge`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "skyfire-api-key": SELLER_SKYFIRE_API_KEY,
+        "skyfire-api-key": SKYFIRE_SELLER_API_KEY,
       },
       body: JSON.stringify({
         token: skyfireToken,

@@ -1,5 +1,5 @@
-import { redis } from "../config/redis";
-import { chargeToken } from "../services/skyfire-api";
+import { redis } from "../lib/redis";
+import { chargeToken } from "./skyfire-api";
 import logger from "./logger";
 
 const EXPIRY_TRACKING_KEY = "session_expiries";
@@ -123,7 +123,7 @@ export async function startExpiryMonitor(): Promise<void> {
     try {
       await processExpiredSessions();
     } catch (error) {
-      logger.error("Error in session expiry monitor:", error);
+      logger.error({ error }, "Error in session expiry monitor:");
     }
   }, MONITOR_INTERVAL);
 
@@ -148,8 +148,8 @@ export async function trackSessionExpiry(
     );
   } catch (error) {
     logger.error(
-      `[Session: ${sessionKey}] Error tracking session expiry:`,
-      error
+      { error },
+      `[Session: ${sessionKey}] Error tracking session expiry:`
     );
   }
 }
@@ -165,8 +165,8 @@ export async function removeSessionFromTracking(
     logger.info(`[Session: ${sessionKey}] Removed from expiry tracking`);
   } catch (error) {
     logger.error(
-      `[Session: ${sessionKey}] Error removing session from tracking:`,
-      error
+      { error },
+      `[Session: ${sessionKey}] Error removing session from tracking:`
     );
   }
 }

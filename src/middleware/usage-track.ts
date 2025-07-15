@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from "express";
 import { hasVerifiedJwt, isBotRequest } from "../type";
-import { UsageSessionManager } from "../utils/usage-session-manager";
+import { UsageSessionManager } from "../services/usage-session-manager";
 import { chargeToken } from "../services/skyfire-api";
-import logger from "../utils/logger";
+import logger from "../services/logger";
 
 // Environment variables will be read inside the function for test flexibility
 

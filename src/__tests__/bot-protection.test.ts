@@ -2,17 +2,20 @@ import express from "express";
 import identifyBot from "../middleware/identify-bot";
 import verifyHeader from "../middleware/verify-header";
 import usageTrack from "../middleware/usage-track";
-import { connectRedis, disconnectRedis } from "../config/redis";
+import { connectRedis, disconnectRedis } from "../lib/redis";
+
+const SKYFIRE_API_URL =
+  process.env.SKYFIRE_API_URL || "https://api.skyfire.xyz";
 
 // Mock the external dependencies
-jest.mock("../utils/logger", () => ({
+jest.mock("../services/logger", () => ({
   info: jest.fn(),
   warn: jest.fn(),
   error: jest.fn(),
   debug: jest.fn(),
 }));
 
-jest.mock("../utils/dd-agent", () => ({}));
+jest.mock("../lib/dd-agent", () => ({}));
 
 describe("Bot Protection Integration Tests", () => {
   let app: express.Application;
@@ -139,23 +142,20 @@ describe("Bot Protection Integration Tests", () => {
   describe("End-to-End Bot Protection Flow", () => {
     test("should handle complete bot protection flow with valid token", async () => {
       // First, create a token
-      const tokenResponse = await fetch(
-        `${process.env.BACKEND_API_URL}/api/v1/tokens`,
-        {
-          method: "POST",
-          headers: {
-            "skyfire-api-key": process.env.SKYFIRE_API_KEY,
-            "content-type": "application/json",
-          },
-          body: JSON.stringify({
-            type: "pay",
-            buyerTag: "",
-            tokenAmount: "0.01",
-            sellerServiceId: process.env.OFFICIAL_SKYFIRE_EXPECTED_SSI,
-            expiresAt: Math.floor(Date.now() / 1000) + 30, // 30 seconds from now
-          }),
-        }
-      );
+      const tokenResponse = await fetch(`${SKYFIRE_API_URL}/api/v1/tokens`, {
+        method: "POST",
+        headers: {
+          "skyfire-api-key": process.env.SKYFIRE_API_KEY,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          type: "pay",
+          buyerTag: "",
+          tokenAmount: "0.01",
+          sellerServiceId: process.env.SELLER_SERVICE_ID,
+          expiresAt: Math.floor(Date.now() / 1000) + 30, // 30 seconds from now
+        }),
+      });
 
       expect(tokenResponse.status).toBe(200);
       const data = (await tokenResponse.json()) as any;
@@ -179,23 +179,20 @@ describe("Bot Protection Integration Tests", () => {
 
     beforeAll(async () => {
       // Create a shared token for all tests in this describe block
-      const tokenResponse = await fetch(
-        `${process.env.BACKEND_API_URL}/api/v1/tokens`,
-        {
-          method: "POST",
-          headers: {
-            "skyfire-api-key": process.env.SKYFIRE_API_KEY,
-            "content-type": "application/json",
-          },
-          body: JSON.stringify({
-            type: "pay",
-            buyerTag: "",
-            tokenAmount: "0.01",
-            sellerServiceId: process.env.OFFICIAL_SKYFIRE_EXPECTED_SSI,
-            expiresAt: Math.floor(Date.now() / 1000) + 300, // 5 minutes from now
-          }),
-        }
-      );
+      const tokenResponse = await fetch(`${SKYFIRE_API_URL}/api/v1/tokens`, {
+        method: "POST",
+        headers: {
+          "skyfire-api-key": process.env.SKYFIRE_API_KEY,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          type: "pay",
+          buyerTag: "",
+          tokenAmount: "0.01",
+          sellerServiceId: process.env.SELLER_SERVICE_ID,
+          expiresAt: Math.floor(Date.now() / 1000) + 300, // 5 minutes from now
+        }),
+      });
 
       expect(tokenResponse.status).toBe(200);
       const data = (await tokenResponse.json()) as any;
@@ -266,23 +263,20 @@ describe("Bot Protection Integration Tests", () => {
       process.env.BATCH_AMOUNT_THRESHOLD = "0.005";
 
       // Create a shared token for all tests in this describe block
-      const tokenResponse = await fetch(
-        `${process.env.BACKEND_API_URL}/api/v1/tokens`,
-        {
-          method: "POST",
-          headers: {
-            "skyfire-api-key": process.env.SKYFIRE_API_KEY,
-            "content-type": "application/json",
-          },
-          body: JSON.stringify({
-            type: "pay",
-            buyerTag: "",
-            tokenAmount: "0.01",
-            sellerServiceId: process.env.OFFICIAL_SKYFIRE_EXPECTED_SSI,
-            expiresAt: Math.floor(Date.now() / 1000) + 300, // 5 minutes from now
-          }),
-        }
-      );
+      const tokenResponse = await fetch(`${SKYFIRE_API_URL}/api/v1/tokens`, {
+        method: "POST",
+        headers: {
+          "skyfire-api-key": process.env.SKYFIRE_API_KEY,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          type: "pay",
+          buyerTag: "",
+          tokenAmount: "0.01",
+          sellerServiceId: process.env.SELLER_SERVICE_ID,
+          expiresAt: Math.floor(Date.now() / 1000) + 300, // 5 minutes from now
+        }),
+      });
 
       expect(tokenResponse.status).toBe(200);
       const data = (await tokenResponse.json()) as any;
@@ -382,23 +376,20 @@ describe("Bot Protection Integration Tests", () => {
       process.env.OVERRIDE_MAXIMUM_REQUEST_COUNT = "5";
 
       // Create a shared token for all tests in this describe block
-      const tokenResponse = await fetch(
-        `${process.env.BACKEND_API_URL}/api/v1/tokens`,
-        {
-          method: "POST",
-          headers: {
-            "skyfire-api-key": process.env.SKYFIRE_API_KEY,
-            "content-type": "application/json",
-          },
-          body: JSON.stringify({
-            type: "pay",
-            buyerTag: "",
-            tokenAmount: "0.01",
-            sellerServiceId: process.env.OFFICIAL_SKYFIRE_EXPECTED_SSI,
-            expiresAt: Math.floor(Date.now() / 1000) + 300, // 5 minutes from now
-          }),
-        }
-      );
+      const tokenResponse = await fetch(`${SKYFIRE_API_URL}/api/v1/tokens`, {
+        method: "POST",
+        headers: {
+          "skyfire-api-key": process.env.SKYFIRE_API_KEY,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          type: "pay",
+          buyerTag: "",
+          tokenAmount: "0.01",
+          sellerServiceId: process.env.SELLER_SERVICE_ID,
+          expiresAt: Math.floor(Date.now() / 1000) + 300, // 5 minutes from now
+        }),
+      });
 
       expect(tokenResponse.status).toBe(200);
       const data = (await tokenResponse.json()) as any;

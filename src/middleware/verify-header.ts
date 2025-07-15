@@ -1,15 +1,15 @@
 import { Request, Response, NextFunction } from "express";
 import { jwtVerify, createRemoteJWKSet, errors as joseErrors } from "jose";
 import { DecodedSkyfireJwt, isBotRequest } from "../type";
-import logger from "../utils/logger";
+import logger from "../services/logger";
 
-const JWKS_URL =
-  process.env.OFFICIAL_SKYFIRE_JWT_ISSUER + "/.well-known/jwks.json";
-const JWT_ISSUER = process.env.OFFICIAL_SKYFIRE_JWT_ISSUER!;
-const JWT_AUDIENCE = process.env.OFFICIAL_SKYFIRE_AGENT_ID!;
-const JWT_ALGORITHM = process.env.OFFICIAL_SKYFIRE_JWT_ALGORITHM!;
-const JWT_SSI = process.env.OFFICIAL_SKYFIRE_EXPECTED_SSI!;
-
+const JWT_ALGORITHM = "ES256";
+const SKYFIRE_API_URL =
+  process.env.SKYFIRE_API_URL || "https://api.skyfire.xyz";
+const JWKS_URL = SKYFIRE_API_URL + "/.well-known/jwks.json";
+const JWT_ISSUER = process.env.JWT_ISSUER!;
+const JWT_AUDIENCE = process.env.SELLER_SERVICE_AGENT_ID!;
+const JWT_SSI = process.env.SELLER_SERVICE_ID!;
 const JWKS = createRemoteJWKSet(new URL(JWKS_URL));
 
 export default async function verifyHeader(
@@ -38,7 +38,6 @@ export default async function verifyHeader(
       algorithms: [JWT_ALGORITHM],
     });
 
-    logger.debug(`JWT Payload:`, payload);
     if ((payload as any).ssi !== JWT_SSI) {
       res.status(401).json({ error: "Invalid SSI in token" });
       return;
@@ -51,7 +50,7 @@ export default async function verifyHeader(
     next();
     return;
   } catch (err: unknown) {
-    logger.warn("Error while verifying token: ", err);
+    logger.warn({ err }, "Error while verifying token: ");
     if (err instanceof joseErrors.JOSEError) {
       res.status(401).json({
         error: "Your JWT token is invalid",

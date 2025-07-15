@@ -2,14 +2,14 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import dotenv from "dotenv";
-import { connectRedis, disconnectRedis } from "./config/redis";
-import { startExpiryMonitor } from "./utils/session-expiry-monitor";
+import { connectRedis, disconnectRedis } from "./lib/redis";
+import { startExpiryMonitor } from "./services/session-expiry-monitor";
 import usageTrack from "./middleware/usage-track";
 import verifyHeader from "./middleware/verify-header";
 import { createProxyMiddleware } from "http-proxy-middleware";
 import identifyBot from "./middleware/identify-bot";
-import logger, { attachLogTraceContext } from "./utils/logger";
-import "./utils/dd-agent";
+import logger, { attachLogTraceContext } from "./services/logger";
+import "./lib/dd-agent";
 
 dotenv.config();
 
@@ -55,7 +55,7 @@ const startServer = async (): Promise<void> => {
       logger.info(`Proxy server running on port ${PORT}`);
     });
   } catch (error) {
-    logger.error("Failed to start server:", error);
+    logger.error({ error }, "Failed to start server: ");
     process.exit(1);
   }
 };

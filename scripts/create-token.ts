@@ -4,15 +4,98 @@ import dotenv from "dotenv";
 import readline from "readline";
 
 // Load environment variables from .env.test
-dotenv.config({ path: ".env.test" });
+dotenv.config({ path: ".env" });
 
 interface TokenParams {
   tokenAmount: string;
   buyerTag?: string;
   sellerServiceId?: string;
+  apiKey?: string;
+  backendUrl?: string;
 }
 
-async function promptForParams(): Promise<TokenParams> {
+function parseCommandLineArgs(): Partial<TokenParams> {
+  const args = process.argv.slice(2);
+  const params: Partial<TokenParams> = {};
+
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+    const nextArg = args[i + 1];
+
+    switch (arg) {
+      case "--api-key":
+      case "-k":
+        if (nextArg && !nextArg.startsWith("-")) {
+          params.apiKey = nextArg;
+          i++; // Skip next argument
+        }
+        break;
+      case "--amount":
+      case "-a":
+        if (nextArg && !nextArg.startsWith("-")) {
+          params.tokenAmount = nextArg;
+          i++; // Skip next argument
+        }
+        break;
+      case "--buyer-tag":
+      case "-b":
+        if (nextArg && !nextArg.startsWith("-")) {
+          params.buyerTag = nextArg;
+          i++; // Skip next argument
+        }
+        break;
+      case "--seller-id":
+      case "-s":
+        if (nextArg && !nextArg.startsWith("-")) {
+          params.sellerServiceId = nextArg;
+          i++; // Skip next argument
+        }
+        break;
+      case "--backend-url":
+      case "-u":
+        if (nextArg && !nextArg.startsWith("-")) {
+          params.backendUrl = nextArg;
+          i++; // Skip next argument
+        }
+        break;
+      case "--help":
+      case "-h":
+        showHelp();
+        process.exit(0);
+        break;
+    }
+  }
+
+  return params;
+}
+
+function showHelp(): void {
+  console.log(`
+🌐 Skyfire Token Creator
+
+Usage: yarn create-token [options]
+
+Options:
+  -k, --api-key <key>        Skyfire API key (required)
+  -a, --amount <amount>       Token amount (e.g., 0.01)
+  -b, --buyer-tag <tag>      Buyer tag (optional)
+  -s, --seller-id <id>       Seller service ID (optional)
+  -u, --backend-url <url>    Backend API URL (optional)
+  -h, --help                 Show this help message
+
+Examples:
+  yarn create-token --api-key your-api-key --amount 0.01
+  yarn create-token -k your-api-key -a 0.01 -b "test-buyer"
+  yarn create-token -k your-api-key -a 0.01 -s your-seller-id
+
+If not provided via command line, the script will prompt for missing values
+or use values from .env.test file.
+`);
+}
+
+async function promptForParams(
+  cliParams: Partial<TokenParams>
+): Promise<TokenParams> {
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
@@ -28,19 +111,24 @@ async function promptForParams(): Promise<TokenParams> {
     console.log("🌐 Skyfire Token Creator");
     console.log("========================\n");
 
-    const tokenAmount = await question("Enter token amount (e.g., 0.01): ");
-    const buyerTag = await question(
-      "Enter buyer tag (optional, press Enter to skip): "
-    );
-    const sellerServiceId = await question(
-      `Enter seller service ID (optional, default: ${process.env.OFFICIAL_SKYFIRE_EXPECTED_SSI}): `
-    );
+    const tokenAmount =
+      cliParams.tokenAmount ||
+      (await question("Enter token amount (default: 0.01): "));
+    const buyerTag =
+      cliParams.buyerTag ||
+      (await question("Enter buyer tag (optional, press Enter to skip): "));
+    const sellerServiceId =
+      cliParams.sellerServiceId ||
+      (await question(
+        `Enter seller service ID (optional, default: ${process.env.SELLER_SERVICE_ID}): `
+      ));
 
     return {
-      tokenAmount: tokenAmount.trim(),
+      tokenAmount: tokenAmount.trim() || "0.01",
       buyerTag: buyerTag.trim() || undefined,
-      sellerServiceId:
-        sellerServiceId.trim() || process.env.OFFICIAL_SKYFIRE_EXPECTED_SSI,
+      sellerServiceId: sellerServiceId.trim() || process.env.SELLER_SERVICE_ID,
+      apiKey: cliParams.apiKey,
+      backendUrl: cliParams.backendUrl,
     };
   } finally {
     rl.close();
@@ -48,16 +136,23 @@ async function promptForParams(): Promise<TokenParams> {
 }
 
 async function createToken(params: TokenParams): Promise<void> {
-  const apiKey = process.env.SKYFIRE_API_KEY;
-  const backendUrl = process.env.BACKEND_API_URL;
+  const apiKey = params.apiKey || process.env.SKYFIRE_API_KEY;
+  const backendUrl =
+    params.backendUrl ||
+    process.env.SKYFIRE_API_URL ||
+    "https://api.skyfire.xyz";
 
   if (!apiKey) {
-    console.error("❌ Error: SKYFIRE_API_KEY not found in .env.test");
+    console.error(
+      "❌ Error: API key not provided. Use --api-key or set SKYFIRE_API_KEY in .env.test"
+    );
     process.exit(1);
   }
 
   if (!backendUrl) {
-    console.error("❌ Error: BACKEND_API_URL not found in .env.test");
+    console.error(
+      "❌ Error: Backend URL not provided. Use --backend-url or set SKYFIRE_API_URL in .env.test"
+    );
     process.exit(1);
   }
 
@@ -122,7 +217,8 @@ async function createToken(params: TokenParams): Promise<void> {
 
 async function main(): Promise<void> {
   try {
-    const params = await promptForParams();
+    const cliParams = parseCommandLineArgs();
+    const params = await promptForParams(cliParams);
     await createToken(params);
   } catch (error) {
     console.error("❌ Script error:", error);

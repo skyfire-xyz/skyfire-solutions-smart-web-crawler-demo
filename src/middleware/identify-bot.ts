@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { BotRequest } from "../type";
-import logger from "../utils/logger";
+import logger from "../services/logger";
 
 export default function identifyBot(
   req: Request,

@@ -19,16 +19,13 @@ RUN addgroup -g 1001 -S nodejs
 RUN adduser -S nodejs -u 1001
 
 COPY package*.json yarn.lock ./
-RUN yarn install --frozen-lockfile && yarn cache clean
+RUN yarn install --frozen-lockfile --production && yarn cache clean
 
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/.env* ./
-COPY src ./src
-COPY tsconfig.json ./
 
 USER nodejs
 
 EXPOSE 4000
 
-# Use nodemon for development, node for production
-CMD ["yarn", "dev"]
+CMD ["node", "dist/index.js"] 

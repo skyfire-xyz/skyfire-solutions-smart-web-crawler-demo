@@ -1,6 +1,6 @@
 import Redis from "ioredis";
 import dotenv from "dotenv";
-import logger from "../utils/logger";
+import logger from "../services/logger";
 
 dotenv.config();
 
@@ -29,7 +29,7 @@ redis.on("connect", () => {
 });
 
 redis.on("error", (err) => {
-  logger.error("Redis connection error:", err);
+  logger.error({ err }, "Redis connection error: ");
 });
 
 redis.on("ready", () => {
@@ -40,7 +40,7 @@ export const connectRedis = async (): Promise<void> => {
   try {
     await redis.connect();
   } catch (error) {
-    logger.error("Failed to connect to Redis:", error);
+    logger.error({ error }, "Failed to connect to Redis: ");
     throw error;
   }
 };
@@ -49,6 +49,6 @@ export const disconnectRedis = async (): Promise<void> => {
   try {
     await redis.disconnect();
   } catch (error) {
-    logger.error("Failed to disconnect from Redis:", error);
+    logger.error({ error }, "Failed to disconnect from Redis: ");
   }
 };

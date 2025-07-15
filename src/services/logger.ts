@@ -3,7 +3,7 @@
 import dotenv from "dotenv";
 dotenv.config();
 
-import tracer from "./dd-agent";
+import tracer from "../lib/dd-agent";
 import { Request, Response, NextFunction } from "express";
 import pino from "pino";
 
