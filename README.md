@@ -58,4 +58,3 @@ A Node.js/Express proxy service with bot protection and Redis-based usage tracki
 | `SELLER_SERVICE_ID`       | Seller service ID       | Required                                               |
 | `SELLER_SERVICE_AGENT_ID` | Seller agent ID         | Required                                               |
 | `PROXY_TARGET`            | Target URL for proxying | Demo URL (https://demo-real-estate-prv4.onrender.com/) |
-| ------------------------- | ----------------------- | ------------------------------------------------------ |
