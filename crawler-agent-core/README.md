@@ -39,7 +39,7 @@ If you would like to run this app locally -
    BUYER_TAG=crawl-demo-au3ctqolmc5
    SELLER_SERVICE_ID=<your_skyfire_seller_service_id>
    SKYFIRE_API_KEY=<your_skyfire_api_key>
-   SKYFIRE_API_BASE_URL=https://api-qa.skyfire.xyz
+   SKYFIRE_API_BASE_URL=https://api.skyfire.xyz
    ```
 
 3. Build the code to generate equivalent JavaScript files from TypeScript files. This should create a dist folder in your root directory

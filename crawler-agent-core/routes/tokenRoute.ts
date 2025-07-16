@@ -10,6 +10,7 @@ const router = express.Router();
     }
 
 router.route("/").post(async (req, res) => {
+    const {tokenAmount} = req.body;
         const response = await fetch(`${process.env.SKYFIRE_API_BASE_URL}/api/v1/tokens`, {
             method: "POST",
             headers: {
@@ -19,7 +20,7 @@ router.route("/").post(async (req, res) => {
             body: JSON.stringify({
                 type: "kya+pay",
                 buyerTag: process.env.BUYER_TAG, 
-                tokenAmount: "0.01", //tokenAmount,
+                tokenAmount: tokenAmount,
                 sellerServiceId: process.env.SELLER_SERVICE_ID,
                 expiresAt: getEpochPlus24Hours(),
             }),

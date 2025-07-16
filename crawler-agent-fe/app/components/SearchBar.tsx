@@ -175,7 +175,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
                           setTimeout(() => setIsFocused(false), 200)
                         }
                         onKeyDown={handleKeyDown}
-                        placeholder="Enter website URL"
+                        placeholder="Select or Enter website URL"
                         autoComplete="off"
                       />
                       {isFocused && (

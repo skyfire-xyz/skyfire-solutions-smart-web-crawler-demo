@@ -78,10 +78,14 @@ export default function CrawlWithTokenPage() {
                   <span className="font-semibold text-base text-gray-900">${SELLER_SERVICE.priceDisplay}</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="text-gray-500 text-sm">Set Token Amount:</span>
+                  <div>
+                    <span className="text-gray-500 text-sm">Set Token Amount:</span>
+                    <p className="text-gray-500 text-xs">(Maximum amount allowed is $0.03)</p>
+                  </div>
                   <input
                     type="number"
                     min="0"
+                    max="0.03"
                     step="0.01"
                     value={tokenAmount}
                     onChange={e => setTokenAmount(e.target.value)}
