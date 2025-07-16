@@ -36,10 +36,44 @@ To run this demo,
 
 ### Contents: 
 
-- Crawler Agent
-- Crawler Service
-- Bot Protection Proxy
-- Protected Website
+The demo consists of four integrated projects that work together to demonstrate how content owners can monetize their valuable data while providing legitimate crawlers with paid access.
+
+1. Crawler Agent FE:
+- Available at: [https://github.com/skyfire-xyz/skyfire-solutions-smart-web-crawler-demo/crawler-agent-fe/](https://github.com/skyfire-xyz/skyfire-solutions-smart-web-crawler-demo/crawler-agent-fe/)
+- Purpose: Interactive frontend that demonstrates the difference between paid and unpaid crawling
+- Features:
+    - Skyfire token management interface
+    - Demonstrates successful requests (with valid payment tokens)
+- Technology: Next.js frontend with intuitive UI
+
+2. Crawler Agent Core:
+- Available at: [https://github.com/skyfire-xyz/skyfire-solutions-crawler-service-demo](https://github.com/skyfire-xyz/skyfire-solutions-smart-web-crawler-demo/crawler-agent-core/)
+- Purpose: Backend service that performs the actual crawling operations
+- Features:
+    - Executes crawl requests with and without payment tokens
+    - Integrates with Bot Protect Proxy for access control
+    - Handles token validation and request processing
+    - Provides API endpoints for the frontend
+    - Manages crawl job queuing and execution
+- Technology: Node.js/Express with crawler logic
+
+3. Bot Protection Proxy:
+- Available at: [https://github.com/skyfire-xyz/skyfire-solutions-crawler-bot-protection-proxy](https://github.com/skyfire-xyz/skyfire-solutions-smart-web-crawler-demo/crawler-bot-protection-proxy)
+- Purpose: Acts as the protective barrier and payment processor
+- Features:
+    - Validates kya+pay tokens from Skyfire
+    - Blocks unpaid requests (returns 401/402 status codes)
+    - Tracks usage per token using Redis
+    - Implements incremental charging (e.g. $0.01 per request)
+    - Processes batch payments
+    - Monitors request limits and enforces usage caps
+- Technology: Node.js/Express with Redis for session management
+
+
+4. Protected Website:
+- Available at: [https://demo-real-estate-prv4.onrender.com/](https://demo-real-estate-prv4.onrender.com/)
+- Purpose: Simulates valuable content that requires paid access from crawler bots.
+
 
 ### Installation Steps
 
