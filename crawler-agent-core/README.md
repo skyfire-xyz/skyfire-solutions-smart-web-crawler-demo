@@ -1,4 +1,6 @@
-# Crawler Service
+# Crawler Agent Core
+
+This is an Express application with crawling logic for web crawler
 
 ### Pre-requisites
 
@@ -51,7 +53,39 @@ If you would like to run this app locally -
    npm run start
    ```
 
-### TODO: SkyfireHook with cheerio crawler
+### skyfireKyaPayTokenHook with CheerioCrawler
+
+To make token-based authentication and bot identification reusable and easy to integrate, Skyfire provides a utility called `skyfireKyaPayTokenHook`. This hook is designed to be used with Crawlee's `CheerioCrawler` and ensures that every outgoing request includes the necessary Skyfire KYA+PAY token and a bot identifier header by injecting in `preNavigationHooks` hooks before each navigation.
+
+**Source code (controllers/skyfireKyaPayTokenHook.ts):**
+```ts
+export function skyfireKyaPayTokenHook(token: string) {
+  return async (crawlingContext, gotOptions) => {
+    crawlingContext.request.headers = {
+      ...crawlingContext.request.headers,
+      "skyfire-pay-id": token ?? "",
+      "x-isbot": "true"
+    };
+    gotOptions.headers = {
+      ...gotOptions.headers,
+      "skyfire-pay-id": token ?? "",
+      "x-isbot": "true"
+    };
+  };
+}
 ```
-"x-isbot": "true"
+
+The `x-isbot: true` header helps protected sites distinguish between human and automated traffic.
+
+#### Usage of the Hook with CheerioCrawler
+
+```ts
+import { CheerioCrawler } from 'crawlee';
+import { skyfireKyaPayTokenHook } from './controllers/skyfireKyaPayTokenHook';
+
+const token = 'YOUR_KYA_PAY_TOKEN';
+
+const crawler = new CheerioCrawler({
+  preNavigationHooks: [skyfireKyaPayTokenHook(token)],
+});
 ```

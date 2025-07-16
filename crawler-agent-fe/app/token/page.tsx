@@ -23,13 +23,11 @@ export default function CrawlWithTokenPage() {
 
     const handleCreateToken = async () => {
         const response: AxiosResponse<{token:string}> = await axios.post(`${process.env.NEXT_PUBLIC_SERVICE_BASE_URL}/token`, {tokenAmount: tokenAmount});
-        console.log("response",  response);
 
         if (!response) {
             console.error("Unable to create kya+pay token");
             return;
         }
-        console.log("kya+pay token created", response.data.token);
         setKyaPayToken(response.data.token);
         setDecodedToken(null); // Reset decoded token when a new one is created
     }

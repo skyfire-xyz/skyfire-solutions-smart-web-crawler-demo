@@ -1,4 +1,6 @@
-# Crawler
+# Crawler Agent FE
+
+This is a Next.js application for a web crawler trying to scrape content from websites
 
 ### Live Demo Link
 

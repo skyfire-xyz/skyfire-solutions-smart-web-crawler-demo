@@ -10,7 +10,6 @@ const router = express.Router();
     }
 
 router.route("/").post(async (req, res) => {
-    console.log("req for token", req.body);
         const response = await fetch(`${process.env.SKYFIRE_API_BASE_URL}/api/v1/tokens`, {
             method: "POST",
             headers: {
@@ -26,14 +25,11 @@ router.route("/").post(async (req, res) => {
             }),
         });
 
-        console.log("response",  response);
-
         const res1: { token: string } = await response.json();
         if (!res1) {
             console.error("Unable to create kya+pay token");
             return;
         }
-        console.log("kya+pay token created", res1.token);
         res.status(200).json({"token": `${res1.token}`})
 })
 

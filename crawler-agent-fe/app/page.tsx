@@ -25,7 +25,6 @@ export default function App() {
 
     const channel = pusher.subscribe(channelId)
     channel.bind("crawler-event", (data: { message: MessageData }) => {
-      console.log("data.message",  data.message)
       if (data.message !== undefined) {
         switch (data.message.type) {
           case "summary":
