@@ -4,6 +4,6 @@
 */storage/
 */.DS_Store
 
-crawler/.next/
-crawler/out/
-crawler/build
+crawler-agent-fe/.next/
+crawler-agent-fe/out/
+crawler-agent-fe/build

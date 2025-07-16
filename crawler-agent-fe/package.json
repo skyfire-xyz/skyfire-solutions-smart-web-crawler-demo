@@ -1,6 +1,6 @@
 {
-  "name": "crawler",
-  "version": "0.0.1",
+  "name": "crawler-agent-fe",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
