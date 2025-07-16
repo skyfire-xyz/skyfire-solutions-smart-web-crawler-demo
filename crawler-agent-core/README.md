@@ -75,7 +75,7 @@ export function skyfireKyaPayTokenHook(token: string) {
 }
 ```
 
-The `x-isbot: true` header helps protected sites distinguish between human and automated traffic.
+The `x-isbot: true` header is used in this demo to help protected sites distinguish between human and automated traffic. In a real-world production environment, more sophisticated bot detection mechanisms would typically be employed.
 
 #### Usage of the Hook with CheerioCrawler
 
@@ -87,5 +87,6 @@ const token = 'YOUR_KYA_PAY_TOKEN';
 
 const crawler = new CheerioCrawler({
   preNavigationHooks: [skyfireKyaPayTokenHook(token)],
+    // ...other options
 });
 ```
