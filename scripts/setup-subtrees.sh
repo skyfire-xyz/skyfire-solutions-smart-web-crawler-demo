@@ -106,14 +106,14 @@ main() {
         "add")
             print_status "Adding all subtrees..."
             add_subtree "crawler-agent-core" "git@github.com:skyfire-xyz/skyfire-solutions-crawler-service-demo.git"
-            add_subtree "crawler-agent-fe" "https://github.com/skyfire-xyz/skyfire-solutions-crawler-demo.git"
-            add_subtree "crawler-bot-protection-proxy" "https://github.com/skyfire-xyz/skyfire-solutions-crawler-bot-protection-proxy.git"
+            add_subtree "crawler-agent-fe" "git@github.com:skyfire-xyz/skyfire-solutions-crawler-demo.git"
+            add_subtree "crawler-bot-protection-proxy" "git@github.com:skyfire-xyz/skyfire-solutions-crawler-bot-protection-proxy.git"
             ;;
         "update")
             print_status "Updating all subtrees..."
             update_subtree "crawler-agent-core" "git@github.com:skyfire-xyz/skyfire-solutions-crawler-service-demo.git"
-            update_subtree "crawler-agent-fe" "https://github.com/skyfire-xyz/skyfire-solutions-crawler-demo.git"
-            update_subtree "crawler-bot-protection-proxy" "https://github.com/skyfire-xyz/skyfire-solutions-crawler-bot-protection-proxy.git"
+            update_subtree "crawler-agent-fe" "git@github.com:skyfire-xyz/skyfire-solutions-crawler-demo.git"
+            update_subtree "crawler-bot-protection-proxy" "git@github.com:skyfire-xyz/skyfire-solutions-crawler-bot-protection-proxy.git"
             ;;
         "remove")
             print_status "Removing all subtrees..."
