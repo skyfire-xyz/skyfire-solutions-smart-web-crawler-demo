@@ -2,6 +2,14 @@
 
 A Node.js/Express proxy service with bot protection and Redis-based usage tracking.
 
+## Features Overview
+
+- **Bot Identification** - Identifies bot requests via `x-isbot: true` header, human requests bypass token verification
+- **Kya+Pay Token Verification** - Validates `skyfire-pay-id` JWT tokens with signature verification and seller service association
+- **Usage Tracking & Charging** - Redis-based session management with incremental charging and batch processing
+- **Request Proxying** - Forwards valid requests to target website
+- **Session Expiration** - Automatic cleanup with final charging on expiry
+
 ## Live Demo Link
 
 You can play with the live demo [here](https://real-estate-list-scraping-demo.skyfire.xyz/).
@@ -16,7 +24,7 @@ The proxy operates in a multi-step process to protect against unauthorized bot a
 - Human requests (without the header) bypass token verification and usage tracking
 - Bot requests proceed to the next steps
 
-### Step 1: Token Verification
+### Step 1: Kya+Pay Token Verification
 
 - Validates the `skyfire-pay-id` JWT token in the request header
 - Verifies token signature, issuer, audience, and expiration
