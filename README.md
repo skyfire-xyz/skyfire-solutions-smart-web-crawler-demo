@@ -49,7 +49,7 @@ The demo consists of four integrated projects that work together to demonstrate 
 
 2. Crawler Agent Core:
 
-- Available at: [https://github.com/skyfire-xyz/skyfire-solutions-crawler-service-demo](https://github.com/skyfire-xyz/skyfire-solutions-smart-web-crawler-demo/tree/main/crawler-agent-core)
+- Available at: [https://github.com/skyfire-xyz/skyfire-solutions-crawler-service-demo/crawler-agent-core](https://github.com/skyfire-xyz/skyfire-solutions-smart-web-crawler-demo/tree/main/crawler-agent-core)
 - Purpose: Backend service that performs the actual crawling operations
 - Features:
   - Executes crawl requests with and without payment tokens
