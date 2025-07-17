@@ -80,13 +80,13 @@ export default function CrawlWithTokenPage() {
                 <div className="flex items-center gap-3">
                   <div>
                     <span className="text-gray-500 text-sm">Set Token Amount:</span>
-                    <p className="text-gray-500 text-xs">(Maximum amount allowed is $0.03)</p>
+                    <p className="text-gray-500 text-xs">(Allowed range b/w $0.001 to $0.003)</p>
                   </div>
                   <input
                     type="number"
                     min="0"
-                    max="0.03"
-                    step="0.01"
+                    max="0.003"
+                    step="0.001"
                     value={tokenAmount}
                     onChange={e => setTokenAmount(e.target.value)}
                     className="font-bold border border-gray-300 rounded px-3 py-2 w-32 focus:outline-none focus:ring-2 focus:ring-blue-200 bg-gray-50 text-gray-900"
