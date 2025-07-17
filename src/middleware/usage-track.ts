@@ -203,33 +203,6 @@ export default async function usageTrack(
     );
   }
 
-  // Check if the request count has reached the maximum allowed requests
-  // if (await manager.hasReachedMaximumRequestCount()) {
-  //   await logSession(
-  //     jwtPayload,
-  //     manager,
-  //     `Threashold reached: Maximum request count reached. We charged the accumulated amount till now. Next requset will be rejected with 402`
-  //   );
-  //   const accumulated = await manager.getAccumulatedAmount();
-  //   if (accumulated && accumulated > 0) {
-  //     // Charge accumulated amount
-  //     const { remainingBalance } = await chargeToken(
-  //       req.skyfireToken,
-  //       accumulated
-  //     );
-  //     await manager.resetAccumulated();
-  //     await manager.updateRemainingBalance(remainingBalance);
-  //   }
-  // }
-
-  // if (await manager.hasReachedRemainingBalance()) {
-  //   await logSession(
-  //     jwtPayload,
-  //     manager,
-  //     `Threashold reached: Remaining balance is insufficient for the next request. We charged the accumulated amount at this point. Next requset will be rejected with 402 for insufficient balance.`
-  //   );
-  // }
-
   // Store session data for expiration handling
   await manager.storeSessionDataForExpiration();
 
