@@ -40,7 +40,7 @@ The demo consists of four integrated projects that work together to demonstrate 
 
 1. Crawler Agent FE:
 
-- Available at: [https://github.com/skyfire-xyz/skyfire-solutions-smart-web-crawler-demo/tree/main/crawler-agent-fe](https://github.com/skyfire-xyz/skyfire-solutions-smart-web-crawler-demo/tree/main/crawler-agent-fe)
+- Available at: [https://github.com/skyfire-xyz/skyfire-solutions-smart-web-crawler-demo/crawler-agent-fe](https://github.com/skyfire-xyz/skyfire-solutions-smart-web-crawler-demo/tree/main/crawler-agent-fe)
 - Purpose: Interactive frontend that demonstrates the difference between paid and unpaid crawling
 - Features:
   - Skyfire token management interface
@@ -61,7 +61,7 @@ The demo consists of four integrated projects that work together to demonstrate 
 
 3. Bot Protection Proxy:
 
-- Available at: [https://github.com/skyfire-xyz/skyfire-solutions-smart-web-crawler-demo/tree/main/crawler-bot-protection-proxy](https://github.com/skyfire-xyz/skyfire-solutions-smart-web-crawler-demo/tree/main/crawler-bot-protection-proxy)
+- Available at: [https://github.com/skyfire-xyz/skyfire-solutions-smart-web-crawler-demo/crawler-bot-protection-proxy](https://github.com/skyfire-xyz/skyfire-solutions-smart-web-crawler-demo/tree/main/crawler-bot-protection-proxy)
 - Purpose: Acts as the protective barrier and payment processor
 - Features:
   - Kya+Pay Token Verification - Validates `skyfire-pay-id` Kya+pay tokens from Skyfire
