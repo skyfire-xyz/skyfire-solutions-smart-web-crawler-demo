@@ -54,14 +54,14 @@ jobs:
         if: inputs.action == 'add'
         run: |
           git subtree add --prefix=crawler-agent-fe \
-            https://github.com/skyfire-xyz/skyfire-solutions-crawler-demo.git \
+            git@github.com:skyfire-xyz/skyfire-solutions-crawler-demo.git \
             main --squash
 
       - name: Add crawler-bot-protection-proxy subtree
         if: inputs.action == 'add'
         run: |
           git subtree add --prefix=crawler-bot-protection-proxy \
-            https://github.com/skyfire-xyz/skyfire-solutions-crawler-bot-protection-proxy.git \
+            git@github.com:skyfire-xyz/skyfire-solutions-crawler-bot-protection-proxy.git \
             main --squash
 
       - name: Update crawler-agent-core subtree
@@ -75,14 +75,14 @@ jobs:
         if: inputs.action == 'update'
         run: |
           git subtree pull --prefix=crawler-agent-fe \
-            https://github.com/skyfire-xyz/skyfire-solutions-crawler-demo.git \
+            git@github.com:skyfire-xyz/skyfire-solutions-crawler-demo.git \
             main --squash
 
       - name: Update crawler-bot-protection-proxy subtree
         if: inputs.action == 'update'
         run: |
           git subtree pull --prefix=crawler-bot-protection-proxy \
-            https://github.com/skyfire-xyz/skyfire-solutions-crawler-bot-protection-proxy.git \
+            git@github.com:skyfire-xyz/skyfire-solutions-crawler-bot-protection-proxy.git \
             main --squash
 
       - name: Push changes
