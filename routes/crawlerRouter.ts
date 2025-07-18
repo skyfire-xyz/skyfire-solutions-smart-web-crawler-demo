@@ -7,7 +7,6 @@ import { stopAndRemoveCrawler } from "../controllers/crawlerRegistry";
 
 router.route("/").post(async (req, res) => {
     let crawlerInfo = await crawlWebsite(req.body);
-    console.log("crawler info", crawlerInfo);
     await triggerEndCrawlMessage({
       totalPagesCrawled: crawlerInfo.results.length,
       totalTimeSeconds: crawlerInfo.totalTimeSeconds,
@@ -20,7 +19,6 @@ router.route("/").post(async (req, res) => {
 
 router.route("/stop").post(async (req, res) => {
   stopAndRemoveCrawler(req.body.channelId, "user request")
-  console.log("stop crawling");
   res.status(200).send("OK");
 });
 

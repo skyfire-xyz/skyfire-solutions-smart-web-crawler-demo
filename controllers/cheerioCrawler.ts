@@ -17,7 +17,7 @@ import {
 } from './crawlerUtils'
 
 import { addCrawler, stopAndRemoveCrawler } from './crawlerRegistry'
-import { skyfirePayTokenHook } from './skyfirePayTokenHook'
+import { skyfireKyaPayTokenHook } from './skyfireKyaPayTokenHook'
 
 export async function crawlWebsite({
   startUrl,
@@ -72,7 +72,7 @@ export async function crawlWebsite({
     maxRequestRetries: 0,
     requestHandlerTimeoutSecs: 5,
     additionalMimeTypes: ['application/json'],
-    preNavigationHooks: [skyfirePayTokenHook(skyfireKyaPayToken)],
+    preNavigationHooks: [skyfireKyaPayTokenHook(skyfireKyaPayToken)],
 
     // Function that will be called for each URL to process the HTML content
     requestHandler: async ({ request, response, body, enqueueLinks }) => {
@@ -129,14 +129,14 @@ export async function crawlWebsite({
       }
     },
 
-    failedRequestHandler({ request, error }) {
-      const errorMessage = `Request to ${request.url} failed with ${request.errorMessages[0]?.split('.')[0]}`
+    failedRequestHandler({ request, response, body, error }) {
       if (!request.url.includes('robots.txt')) {
         const errorData = {
           message: {
-            type: MessageType.PAGE,
-            response: {text: errorMessage, headers: {}},
-            request: {url: request.url, headers: request.headers}
+            type: MessageType.ERROR,
+            paid: PaidStatus.FAILED,
+            response: {text: response.body || "", url: request.url, headers: response.headers},
+            request: {url: `Request to ${request.url} failed. Status: ${response.statusCode}`, headers: request.headers, method:request.method}
           }
         }
         triggerCrawlEvent(errorData, channelId).catch((error) => {
