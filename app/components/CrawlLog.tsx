@@ -50,7 +50,6 @@ export default function CrawlLog({
 
         <ul className="flex-1">
           {[...log].reverse().map((entry, index) => {
-            console.log("entry",entry);
             if (!entry.request.url) {
               return (
                 <li

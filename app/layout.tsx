@@ -1,6 +1,7 @@
 import "@/styles/globals.css"
 import { Metadata } from "next"
 import { headers } from "next/headers"
+import { GoogleAnalytics } from "@next/third-parties/google"
 import { ToastContainer } from "react-toastify"
 
 import { siteConfig } from "@/config/site"
@@ -14,8 +15,8 @@ import { ThemeProvider } from "@/components/theme-provider"
 import "react-toastify/dist/ReactToastify.css"
 import { getClientConfig } from "@/lib/client-config"
 
-import TopBar from "./components/TopBar"
 import NavTabs from "./components/NavTabs"
+import TopBar from "./components/TopBar"
 
 export const metadata: Metadata = {
   title: {
@@ -54,6 +55,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
           fontSans.variable
         )}
       >
+        <GoogleAnalytics gaId="G-7VNTRGW711" />
         <ClientProvider hostname={domain}>
           <ThemeProvider
             attribute="class"
@@ -65,10 +67,9 @@ export default function RootLayout({ children }: RootLayoutProps) {
               <div className="relative flex min-h-screen flex-col ml-5">
                 <TopBar />
                 <NavTabs />
-                
 
                 <div className="flex-1">{children}</div>
-                </div>
+              </div>
               <TailwindIndicator />
               <ToastContainer />
             </SkyfireProvider>

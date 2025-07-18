@@ -110,8 +110,6 @@ export const SkyfireProvider: React.FC<{ children: ReactNode }> = ({
           }
         }
 
-        console.log("response", response)
-
         // Can Process Payment Here
         setTimeout(() => {
           dispatch(loading(false))
