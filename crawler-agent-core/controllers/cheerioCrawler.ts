@@ -17,7 +17,7 @@ import {
 } from './crawlerUtils'
 
 import { addCrawler, stopAndRemoveCrawler } from './crawlerRegistry'
-import { skyfirePayTokenHook } from './skyfirePayTokenHook'
+import { skyfireKyaPayTokenHook } from './skyfireKyaPayTokenHook'
 
 export async function crawlWebsite({
   startUrl,
@@ -72,7 +72,7 @@ export async function crawlWebsite({
     maxRequestRetries: 0,
     requestHandlerTimeoutSecs: 5,
     additionalMimeTypes: ['application/json'],
-    preNavigationHooks: [skyfirePayTokenHook(skyfireKyaPayToken)],
+    preNavigationHooks: [skyfireKyaPayTokenHook(skyfireKyaPayToken)],
 
     // Function that will be called for each URL to process the HTML content
     requestHandler: async ({ request, response, body, enqueueLinks }) => {

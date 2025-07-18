@@ -17,7 +17,6 @@ app.use("/crawl", crawlerRoute);
 app.use("/token", tokenRoute);
 
 app.get("/", (req: Request, res: Response) => {
-  console.log("Get on server");
   return res.send("Welcome to Crawler Service");
 });
 
