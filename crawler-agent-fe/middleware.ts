@@ -7,7 +7,6 @@ export function middleware(request: NextRequest) {
   const hostname = request.headers.get("host") || ""
   const config = getClientConfig(hostname)
 
-  console.log(config, "config")
   // Check if auth is required for this client config
   if (config.requiresAuth) {
     const domain = hostname.split(".")[0]

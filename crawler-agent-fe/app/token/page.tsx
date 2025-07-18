@@ -127,8 +127,8 @@ export default function CrawlWithTokenPage() {
               </div>
             </div>
             <div className="break-all text-red-600 text-base font-semibold">
-                      {error}
-                    </div>
+              {error}
+            </div>
             {
             kyaPayToken ? 
             <>
