@@ -3,7 +3,7 @@
 import dotenv from "dotenv";
 import readline from "readline";
 
-// Load environment variables from .env.test
+// Load environment variables from .env
 dotenv.config({ path: ".env" });
 
 interface TokenParams {
@@ -89,7 +89,7 @@ Examples:
   yarn create-token -k your-api-key -a 0.01 -s your-seller-id
 
 If not provided via command line, the script will prompt for missing values
-or use values from .env.test file.
+or use values from .env file.
 `);
 }
 

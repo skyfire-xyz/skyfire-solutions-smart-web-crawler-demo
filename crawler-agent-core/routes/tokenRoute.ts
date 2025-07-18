@@ -10,12 +10,13 @@ const router = express.Router();
     }
 
 router.route("/").post(async (req, res) => {
-    const {tokenAmount} = req.body;
+    const {tokenAmount, userApiKey} = req.body;
+    try {
         const response = await fetch(`${process.env.SKYFIRE_API_BASE_URL}/api/v1/tokens`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "skyfire-api-key": process.env.SKYFIRE_API_KEY,
+                "skyfire-api-key": userApiKey && userApiKey.length > 0 ? userApiKey : process.env.SKYFIRE_API_KEY,
             },
             body: JSON.stringify({
                 type: "kya+pay",
@@ -26,15 +27,21 @@ router.route("/").post(async (req, res) => {
             }),
         });
 
-        console.log("response",  response);
-
-        const res1: { token: string } = await response.json();
-        if (!res1) {
-            console.error("Unable to create kya+pay token");
-            return;
+        if (response.status === 200) {
+            const res1: { token: string } = await response.json();
+            if (!res1 || !res1.token) {
+                console.error("Unable to create kya+pay token");
+                res.status(500).json({ error: "Unable to create kya+pay token" });
+                return;
+            }
+            res.status(200).json({"token": `${res1.token}`})
+        } else {
+            res.status(response.status).json({ error: response.statusText });
         }
-        console.log("kya+pay token created", res1.token);
-        res.status(200).json({"token": `${res1.token}`})
+    } catch(error: any) {
+        console.error("Error in token creation:", error);
+        res.status(500).json({ error: error?.message || "Internal server error" });
+    }
 })
 
 export default router;

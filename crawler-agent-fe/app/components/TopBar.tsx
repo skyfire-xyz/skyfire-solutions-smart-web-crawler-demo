@@ -20,6 +20,16 @@ export default function TopBar() {
               <span className="font-semibold">Protected Website:</span> Requires a <span className="font-mono">kya+pay</span> token to allow crawler access.
             </li>
           </ul>
+          <div className="mt-4">
+            <a
+              href="https://www.youtube.com/watch?v=xiwfPbEQ5BY"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block px-4 py-2 bg-gray-800 text-white rounded font-semibold text-sm shadow hover:bg-gray-700 transition"
+            >
+              Reference Video: How the Smart Web Crawler Works
+            </a>
+          </div>
         </div>
       </div>
     </div>
