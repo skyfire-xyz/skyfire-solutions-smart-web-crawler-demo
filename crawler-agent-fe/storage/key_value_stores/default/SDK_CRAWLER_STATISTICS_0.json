@@ -1,0 +1,37 @@
+{
+  "requestsFinished": 0,
+  "requestsFailed": 1,
+  "requestsRetries": 0,
+  "requestsFailedPerMinute": 271,
+  "requestsFinishedPerMinute": 0,
+  "requestMinDurationMillis": null,
+  "requestMaxDurationMillis": 0,
+  "requestTotalFailedDurationMillis": 71,
+  "requestTotalFinishedDurationMillis": 0,
+  "crawlerStartedAt": "2025-07-08T14:08:17.852Z",
+  "crawlerFinishedAt": "2025-07-08T14:08:18.057Z",
+  "statsPersistedAt": "2025-07-08T14:08:18.057Z",
+  "crawlerRuntimeMillis": 221,
+  "crawlerLastStartTimestamp": 1751983697836,
+  "requestRetryHistogram": [
+    1
+  ],
+  "statsId": 0,
+  "requestAvgFailedDurationMillis": 71,
+  "requestAvgFinishedDurationMillis": null,
+  "requestTotalDurationMillis": 71,
+  "requestsTotal": 1,
+  "requestsWithStatusCode": {},
+  "errors": {
+    "rsc": {
+      "ENOENT": {
+        "Error": {
+          "ENOENT: no such file or directory, open '/Users/manmeetsingh/supreet/skyfire/sky-crawler/.next/server/vendor-chunks/data_files/headers-order.json'": {
+            "count": 1
+          }
+        }
+      }
+    }
+  },
+  "retryErrors": {}
+}

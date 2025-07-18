@@ -121,9 +121,9 @@ describe("Bot Protection Integration Tests", () => {
         "x-isbot": "true",
       });
 
-      expect(response.status).toBe(401);
+      expect(response.status).toBe(402);
       expect(response.body.error).toBe(
-        "Missing Skyfire token `skyfire-pay-id`"
+        "Missing Kya+pay token `skyfire-pay-id`"
       );
     });
 

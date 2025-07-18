@@ -26,7 +26,7 @@ export default async function verifyHeader(
   const skyfireToken = req.header("skyfire-pay-id") || "";
 
   if (!skyfireToken) {
-    res.status(401).json({ error: "Missing Skyfire token `skyfire-pay-id`" });
+    res.status(402).json({ error: "Missing Kya+pay token `skyfire-pay-id`" });
     return;
   }
 
