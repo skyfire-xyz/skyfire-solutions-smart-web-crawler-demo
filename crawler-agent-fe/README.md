@@ -7,7 +7,7 @@ This is a Next.js application for a web crawler trying to scrape content from we
 You can play with the live demo [here](https://crawler-demo.skyfire.xyz/).
 
 Here is a video for the running crawler demo:
-![Running Crawler Demo Video](https://github.com/skyfire-xyz/skyfire-solutions-smart-web-crawler-demo/blob/main/crawler-agent-fe/public/static/videos/running_crawler_demo.mov)
+![Running Crawler Demo Video](https://www.youtube.com/watch?v=xiwfPbEQ5BY)
 
 ### Pre-requisites
 

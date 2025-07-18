@@ -20,7 +20,6 @@ Skyfire introduces a **token-based payment system** that allows crawlers to acce
 You can play with the live demo [here](https://crawler-demo.skyfire.xyz/).
 
 Here is a video for the running crawler demo:
-(TODO: replace with GIF)
 ![Running Crawler Demo Video](https://www.youtube.com/watch?v=xiwfPbEQ5BY)
 
 ### Flow
