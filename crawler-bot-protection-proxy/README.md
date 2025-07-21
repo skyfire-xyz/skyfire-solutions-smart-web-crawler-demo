@@ -18,6 +18,51 @@ You can play with the live demo [here](https://real-estate-list-scraping-demo.sk
 
 The proxy operates in a multi-step process to protect against unauthorized bot access while allowing legitimate traffic:
 
+```mermaid
+sequenceDiagram
+    participant BC as Bot Client
+    participant BBS as Bot Blocker Service
+    participant RQ as Redis + Queue
+    participant PW as Protected Website
+
+    Note over BC, PW: High-Level Bot Blocker Flow
+
+    BC->>BBS: Request (with/without token)
+
+    alt No token
+        BBS-->>BC: 402 Payment Required
+    else Token present
+        BBS->>BBS: Validate token (signature, expiry)
+
+        alt Token invalid
+            BBS-->>BC: 401 Invalid Token
+        else Token valid
+            BBS->>BBS: Initial charge for request (e.g. $0.0001)
+            BBS->>PW: Forward request
+            PW-->>BBS: Website content
+            BBS-->>BC: Return content
+
+            BBS->>RQ: Track request (increment count, accumulate charges, update timestamp)
+            RQ->>RQ: Check thresholds, session expiry & remaining balance
+
+            alt Remaining insufficient for request (Remaining < per use + accumulated charges)
+                RQ-->>BBS: 402 Payment Required (Low Balance)
+                BBS->>BBS: Process accumulated charges
+            else Batch threshold reached (e.g. $0.001 == accumulated charges)
+                RQ-->>BBS: Trigger batch processing
+                BBS->>BBS: Process accumulated charges
+            else Max request limit exceeded
+                RQ-->>BBS: 402 Payment Required
+            else Session expired (user inactive)
+                BBS->>BBS: Process accumulated charges
+                BBS->>BBS: Process accumulated charges & cleanup session
+            else Within limits
+                RQ-->>BBS: Continue (tracking updated)
+            end
+        end
+    end
+```
+
 ### Step 0: Bot Identification
 
 - Checks for the `x-isbot: true` header to identify bot requests
