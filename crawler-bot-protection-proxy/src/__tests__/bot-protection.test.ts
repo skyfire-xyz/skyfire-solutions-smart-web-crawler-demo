@@ -123,7 +123,7 @@ describe("Bot Protection Integration Tests", () => {
 
       expect(response.status).toBe(402);
       expect(response.body.error).toBe(
-        "Missing Kya+pay token `skyfire-pay-id`"
+         "Missing Kya+pay token `skyfire-pay-id`. Please create an account at https://app.skyfire.xyz and create a kya+pay token - https://docs.skyfire.xyz/reference/create-token."
       );
     });
 

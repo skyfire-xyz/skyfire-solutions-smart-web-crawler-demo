@@ -81,7 +81,7 @@ export default async function usageTrack(
     } catch (error) {
       logger.error(`[Session: ${jwtPayload.jti}] Error charging token:`, error);
       res.status(402).json({
-        error: `Payment Required: Error charging Token`,
+        error: `Payment Required: Error charging Token. Kya+pay token is depleted, please create a new token.`,
         reason: "insufficient_balance",
       });
       return;
@@ -131,7 +131,7 @@ export default async function usageTrack(
           error
         );
         res.status(402).json({
-          error: `Payment Required: Error charging Token`,
+          error: `Payment Required: Error charging Token. Kya+pay token is depleted, please create a new token.`,
           reason: "insufficient_balance",
         });
         return;
@@ -145,7 +145,7 @@ export default async function usageTrack(
 
     if (hasReachedRemainingBalance) {
       res.status(402).json({
-        error: `Payment Required: token usage exceeded. Insufficient balance. ${
+        error: `Payment Required: token usage exceeded, please create a new token. Insufficient balance. ${
           hasCharges ? `Accumulated amount was charged.` : ""
         }`,
         reason: "insufficient_balance",
@@ -153,7 +153,7 @@ export default async function usageTrack(
       return;
     } else if (hasReachedMaximumRequestCount) {
       res.status(402).json({
-        error: `Payment Required: token usage exceeded. Maximum request count reached. ${
+        error: `Payment Required: token usage exceeded, please create a new token. Maximum request count reached. ${
           hasCharges ? `Accumulated amount was charged.` : ""
         }`,
         reason: "batch_limit_reached",
@@ -189,7 +189,7 @@ export default async function usageTrack(
           error
         );
         res.status(402).json({
-          error: `Payment Required: Error charging Token`,
+          error: `Payment Required: Error charging Token. Kya+pay token is depleted, please create a new token.`,
           reason: "insufficient_balance",
         });
         return;
