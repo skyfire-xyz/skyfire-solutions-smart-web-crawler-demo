@@ -123,7 +123,7 @@ describe("Bot Protection Integration Tests", () => {
 
       expect(response.status).toBe(402);
       expect(response.body.error).toBe(
-        "Missing Kya+pay token `skyfire-pay-id`"
+        "Missing Kya+pay token `skyfire-pay-id`. Please create an account at https://app.skyfire.xyz and create a kya+pay token - https://docs.skyfire.xyz/reference/create-token."
       );
     });
 
@@ -151,7 +151,7 @@ describe("Bot Protection Integration Tests", () => {
         body: JSON.stringify({
           type: "pay",
           buyerTag: "",
-          tokenAmount: "0.01",
+          tokenAmount: "0.001",
           sellerServiceId: process.env.SELLER_SERVICE_ID,
           expiresAt: Math.floor(Date.now() / 1000) + 30, // 30 seconds from now
         }),
@@ -188,7 +188,7 @@ describe("Bot Protection Integration Tests", () => {
         body: JSON.stringify({
           type: "pay",
           buyerTag: "",
-          tokenAmount: "0.01",
+          tokenAmount: "0.001",
           sellerServiceId: process.env.SELLER_SERVICE_ID,
           expiresAt: Math.floor(Date.now() / 1000) + 300, // 5 minutes from now
         }),
@@ -199,7 +199,7 @@ describe("Bot Protection Integration Tests", () => {
       sharedToken = data.token;
     });
 
-    test("should get charged 0.01 for the first request", async () => {
+    test("should get charged 0.0001 for the first request", async () => {
       const response = await makeRequest({
         "x-isbot": "true",
         "skyfire-pay-id": sharedToken,
@@ -214,7 +214,7 @@ describe("Bot Protection Integration Tests", () => {
     test("should make another 9 successful requests", async () => {
       const responses = [];
 
-      // Make exactly 10 requests
+      // Make exactly 9 requests (total 10 with the first one)
       for (let i = 0; i < 9; i++) {
         const response = await makeRequest({
           "x-isbot": "true",
@@ -254,13 +254,13 @@ describe("Bot Protection Integration Tests", () => {
     }, 30000);
   });
 
-  describe("Batch Threshold Tests with 0.005 threshold", () => {
+  describe("Batch Threshold Tests with 0.0005 threshold", () => {
     let originalThreshold: string | undefined;
     let sharedToken: string;
 
     beforeAll(async () => {
       originalThreshold = process.env.BATCH_AMOUNT_THRESHOLD;
-      process.env.BATCH_AMOUNT_THRESHOLD = "0.005";
+      process.env.BATCH_AMOUNT_THRESHOLD = "0.0005";
 
       // Create a shared token for all tests in this describe block
       const tokenResponse = await fetch(`${SKYFIRE_API_URL}/api/v1/tokens`, {
@@ -272,7 +272,7 @@ describe("Bot Protection Integration Tests", () => {
         body: JSON.stringify({
           type: "pay",
           buyerTag: "",
-          tokenAmount: "0.01",
+          tokenAmount: "0.001",
           sellerServiceId: process.env.SELLER_SERVICE_ID,
           expiresAt: Math.floor(Date.now() / 1000) + 300, // 5 minutes from now
         }),
@@ -315,7 +315,7 @@ describe("Bot Protection Integration Tests", () => {
       }
 
       expect(responses[0].headers["X-Payment-Session-Batch-Threshold"]).toBe(
-        "0.005"
+        "0.0005"
       );
 
       // All requests should succeed
@@ -323,7 +323,7 @@ describe("Bot Protection Integration Tests", () => {
       expect(successfulRequests.length).toBe(5);
     });
 
-    test("should get charged 0.005 on 6th request", async () => {
+    test("should get charged 0.0005 on 6th request", async () => {
       const response = await makeRequest({
         "x-isbot": "true",
         "skyfire-pay-id": sharedToken,
@@ -334,7 +334,7 @@ describe("Bot Protection Integration Tests", () => {
       expect(response.body.isBot).toBe(true);
       expect(response.body.hasToken).toBe(true);
 
-      expect(response.headers["X-Payment-Charged"]).toBe("0.005");
+      expect(response.headers["X-Payment-Charged"]).toBe("0.0005");
       expect(response.headers["X-Payment-Session-Accumulated-Amount"]).toBe(
         "0"
       );
@@ -385,7 +385,7 @@ describe("Bot Protection Integration Tests", () => {
         body: JSON.stringify({
           type: "pay",
           buyerTag: "",
-          tokenAmount: "0.01",
+          tokenAmount: "0.001",
           sellerServiceId: process.env.SELLER_SERVICE_ID,
           expiresAt: Math.floor(Date.now() / 1000) + 300, // 5 minutes from now
         }),
@@ -443,7 +443,7 @@ describe("Bot Protection Integration Tests", () => {
 
       expect(response.status).toBe(402);
       expect(response.body.error).toContain("Payment Required");
-      expect(response.headers["X-Payment-Charged"]).toBe("0.004");
+      expect(response.headers["X-Payment-Charged"]).toBe("0.0004");
       expect(response.headers["X-Payment-Session-Count"]).toBe("5");
     });
   });
