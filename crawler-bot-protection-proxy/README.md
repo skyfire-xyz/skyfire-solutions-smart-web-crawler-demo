@@ -54,7 +54,6 @@ sequenceDiagram
             else Max request limit exceeded
                 RQ-->>BBS: 402 Payment Required
             else Session expired (user inactive)
-                BBS->>BBS: Process accumulated charges
                 BBS->>BBS: Process accumulated charges & cleanup session
             else Within limits
                 RQ-->>BBS: Continue (tracking updated)
