@@ -78,13 +78,23 @@ export default function CrawlWithTokenPage() {
     }
 
     return (
-        <div className="w-full p-6 bg-[#fafbfc] min-h-screen">
-            <button
-                  className="px-6 py-2 mb-4 mr-2 border border-gray-600 text-gray-600 rounded font-semibold bg-white hover:bg-gray-50 transition w-fit"
-                  onClick={() => setShowApiKeyInput(!showApiKeyInput)}
-                >
-                  Try with your own API key? (Optional)
-            </button>
+        <div className="w-full p-6 bg-[#fafbfc] min-h-screen flex flex-col">
+            <div className="flex flex-col gap-1 mb-2">
+              <button
+                className="px-6 py-2 border border-gray-600 text-gray-600 rounded font-semibold bg-white hover:bg-gray-50 transition w-fit"
+                onClick={() => setShowApiKeyInput(!showApiKeyInput)}
+              >
+                Try with your own API key? (Optional)
+              </button>
+              <a
+                href="https://docs.skyfire.xyz/docs/introduction"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="py-2 text-gray-800 font-semibold text-sm hover:underline"
+              >
+                Refer to Skyfire Platform Guide for creating API key
+              </a>
+            </div>
             {showApiKeyInput && (
               <div className="bg-white rounded-xl border border-gray-200 p-6 flex flex-col gap-4 shadow-md mt-4 w-full mb-6">
                 <div className="flex items-center gap-3 w-full">
@@ -106,7 +116,7 @@ export default function CrawlWithTokenPage() {
                   <span className="font-semibold text-base text-gray-900">{SELLER_SERVICE.name}</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="text-gray-500 text-sm">Minimum Token Amount:</span>
+                  <span className="text-gray-500 text-sm">Price:</span>
                   <span className="font-semibold text-base text-gray-900">${SELLER_SERVICE.priceDisplay}</span>
                 </div>
                 <div className="flex items-center gap-3">

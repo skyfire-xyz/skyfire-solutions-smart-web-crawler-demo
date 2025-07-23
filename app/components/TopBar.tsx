@@ -22,7 +22,7 @@ export default function TopBar() {
           </ul>
           <div className="mt-4">
             <a
-              href="https://www.youtube.com/watch?v=xiwfPbEQ5BY"
+              href="https://youtu.be/onkJ1LlS7q8"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-block px-4 py-2 bg-gray-800 text-white rounded font-semibold text-sm shadow hover:bg-gray-700 transition"
