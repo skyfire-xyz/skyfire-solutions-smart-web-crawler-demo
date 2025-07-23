@@ -78,9 +78,9 @@ export async function crawlWebsite({
     requestHandler: async ({ request, response, body, enqueueLinks }) => {
       totalTraversalSizeBytes += body.length
 
-      const rawHTML1 = body.toString()
-      const rawHTMLShort1 = rawHTML1.substring(0, 4000) // Pusher has a 10KB limit
-      const content1 = encodeHTML(rawHTMLShort1)
+      const rawHTMLBody = body.toString()
+      const rawHTMLShortBody = rawHTMLBody.substring(0, 4000) // Pusher has a 10KB limit
+      const contentBody = encodeHTML(rawHTMLShortBody)
 
       if (response?.statusCode !== 200) {
         await triggerCrawlEvent(
@@ -89,7 +89,7 @@ export async function crawlWebsite({
               type: MessageType.ERROR,
               paid: PaidStatus.FAILED,
               request: {url: `Request to ${request.url} failed. Status: ${response.statusCode}`, headers:request.headers,  method:request.method}, 
-              response: { text: `${content1}`, url: request.url, headers: response.headers},
+              response: { text: `${contentBody}`, url: request.url, headers: response.headers},
             },
           },
           channelId
