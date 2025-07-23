@@ -78,7 +78,7 @@ export default function CrawlWithTokenPage() {
     }
 
     return (
-         <div className="w-full p-6 bg-[#fafbfc] min-h-screen flex flex-col">
+        <div className="w-full p-6 bg-[#fafbfc] min-h-screen flex flex-col">
             <div className="flex flex-col gap-1 mb-2">
               <button
                 className="px-6 py-2 border border-gray-600 text-gray-600 rounded font-semibold bg-white hover:bg-gray-50 transition w-fit"
