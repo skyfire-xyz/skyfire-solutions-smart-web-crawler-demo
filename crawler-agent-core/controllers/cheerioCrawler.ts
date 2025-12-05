@@ -43,7 +43,7 @@ export async function crawlWebsite({
   inputRequests = inputRequests > MAX_REQUESTS ? MAX_REQUESTS : inputRequests
   inputDepth = inputDepth > MAX_DEPTH ? MAX_DEPTH : inputDepth
   const results: PageResult[] = []
-  const requestQueue = await RequestQueue.open()
+  const requestQueue = await RequestQueue.open(crypto.randomUUID())
   const robotsTxt = await fetchRobotsTxt(startUrl, channelId)
   const robotsData = parseRobotsTxt(robotsTxt)
   const startTimeOverall = Date.now()
