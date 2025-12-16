@@ -177,6 +177,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
                         onKeyDown={handleKeyDown}
                         placeholder="Select or Enter website URL"
                         autoComplete="off"
+                        disabled={isLoading}
                       />
                       {isFocused && (
                         <div className="absolute w-full mt-1 bg-white border rounded-md shadow-lg z-10 max-h-60 overflow-y-auto">
