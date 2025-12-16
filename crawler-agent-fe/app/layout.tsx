@@ -17,6 +17,7 @@ import { getClientConfig } from "@/lib/client-config"
 
 import NavTabs from "./components/NavTabs"
 import TopBar from "./components/TopBar"
+import { CrawlingProvider } from "./contexts/CrawlingContext"
 
 export const metadata: Metadata = {
   title: {
@@ -64,14 +65,16 @@ export default function RootLayout({ children }: RootLayoutProps) {
             enableSystem={false}
           >
             <SkyfireProvider>
-              <div className="relative flex min-h-screen flex-col ml-5">
-                <TopBar />
-                <NavTabs />
+              <CrawlingProvider>
+                <div className="relative flex min-h-screen flex-col ml-5">
+                  <TopBar />
+                  <NavTabs />
 
-                <div className="flex-1">{children}</div>
-              </div>
-              <TailwindIndicator />
-              <ToastContainer />
+                  <div className="flex-1">{children}</div>
+                </div>
+                <TailwindIndicator />
+                <ToastContainer />
+              </CrawlingProvider>
             </SkyfireProvider>
           </ThemeProvider>
         </ClientProvider>
