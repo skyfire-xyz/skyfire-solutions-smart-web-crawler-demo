@@ -210,8 +210,8 @@ export async function triggerCrawlEvent(
   event: string = 'crawler-event'
 ): Promise<void> {
   console.log(
-    { data },
-    `Triggering pusher event ${event} on channel ${channel} type ${(data as { message: { type: string } }).message.type}`
+    `Triggering pusher event ${event} on channel ${channel} type ${(data as { message: { type: string } }).message.type}`,
+    JSON.stringify(data, null, 2)
   )
   await pusher.trigger(channel, event, data)
 }
