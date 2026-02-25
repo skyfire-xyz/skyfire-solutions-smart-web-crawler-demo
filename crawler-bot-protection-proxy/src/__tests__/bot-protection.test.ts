@@ -121,10 +121,9 @@ describe("Bot Protection Integration Tests", () => {
         "x-isbot": "true",
       });
 
-      expect(response.status).toBe(402);
-      expect(response.body.error).toBe(
-        "Missing Kya+pay token `skyfire-pay-id`. Please create an account at https://app.skyfire.xyz and create a kya+pay token - https://docs.skyfire.xyz/reference/create-token."
-      );
+      expect(response.status).toBe(403);
+      expect(response.body).toContain("Missing KYAPay token");
+      expect(response.body).toContain("skyfire-pay-id");
     });
 
     test("should reject bot request with invalid token", async () => {
@@ -134,8 +133,8 @@ describe("Bot Protection Integration Tests", () => {
       });
 
       expect(response.status).toBe(401);
-      // The middleware should return JSON error for invalid tokens
-      expect(response.body.error).toBe("Your JWT token is invalid");
+      expect(response.body).toContain("Invalid KYAPay token");
+      expect(response.body).toContain("skyfire-pay-id");
     });
   });
 

@@ -1,15 +1,22 @@
 import { Request } from "express";
 
 export interface DecodedSkyfireJwt {
+  ver: string;
   env: string;
-  btg: string;
+  btg?: string;
   ssi: string;
+  scopes: string[];
+  bid: { email: string };
+  aid: { creation_id: string, source_ips: string[] };
+  rid: {};
   value: string;
   amount: string;
-  sps: string;
-  spr: string;
-  mnr: number;
   cur: string;
+  stp: string;
+  sti: { type: string }
+  spr: string;
+  sps: string;
+  mnr: number;
   iat: number;
   iss: string;
   jti: string;

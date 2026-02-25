@@ -1,68 +1,46 @@
 import { Request, Response, NextFunction } from "express";
-import { jwtVerify, createRemoteJWKSet, errors as joseErrors } from "jose";
 import { DecodedSkyfireJwt, isBotRequest } from "../type";
-import logger from "../services/logger";
+import { verifyKyaPayToken } from "../verify-kya-pay-token";
 
-const JWT_ALGORITHM = "ES256";
-const SKYFIRE_API_URL =
-  process.env.SKYFIRE_API_URL || "https://api.skyfire.xyz";
-const JWKS_URL = SKYFIRE_API_URL + "/.well-known/jwks.json";
-const JWT_ISSUER = process.env.JWT_ISSUER!;
-const JWT_AUDIENCE = process.env.SELLER_SERVICE_AGENT_ID!;
-const JWT_SSI = process.env.SELLER_SERVICE_ID!;
-const JWKS = createRemoteJWKSet(new URL(JWKS_URL));
+const MISSING_KYAPAY_TEXT =
+  "Missing KYAPay token in the skyfire-pay-id header. Please create an account at https://app.skyfire.xyz and create a 'kya+pay' token - https://docs.skyfire.xyz/reference/create-token . Include the token in your request in the skyfire-pay-id header.";
+
+const INVALID_KYAPAY_TEXT =
+  "Invalid KYAPay token in the skyfire-pay-id header. Please create an account at https://app.skyfire.xyz and create a 'kya+pay' token - https://docs.skyfire.xyz/reference/create-token . Include the token in your request in the skyfire-pay-id header.";
+
+/**
+ * 402 Insufficient balance is returned by downstream (e.g. usage-track) when
+ * charge fails. Use INSUFFICIENT_KYAPAY_TEXT for that response body.
+ */
+export const INSUFFICIENT_KYAPAY_TEXT =
+  "The balance on the given KYAPay token is not enough. Please create and send a new 'kya+pay' token.";
 
 export default async function verifyHeader(
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<void> {
-  // Only verify token if request is from a bot
   if (!isBotRequest(req)) {
     next();
     return;
   }
 
-  const skyfireToken = req.header("skyfire-pay-id") || "";
+  const token = req.header("skyfire-pay-id") ?? "";
 
-  if (!skyfireToken) {
-    res.status(402).json({ error: "Missing Kya+pay token `skyfire-pay-id`. Please create an account at https://app.skyfire.xyz and create a kya+pay token - https://docs.skyfire.xyz/reference/create-token."});
+  if (!token) {
+    res.status(403).send(MISSING_KYAPAY_TEXT);
     return;
   }
 
-  // Verify JWT
-  try {
-    const { payload } = await jwtVerify(skyfireToken, JWKS, {
-      issuer: JWT_ISSUER,
-      audience: JWT_AUDIENCE,
-      algorithms: [JWT_ALGORITHM],
-    });
+  const vr = await verifyKyaPayToken(token);
 
-    if ((payload as any).ssi !== JWT_SSI) {
-      res.status(401).json({ error: "Invalid SSI in token" });
-      return;
-    }
-
-    // Attach decoded info to req for downstream middleware
-    req.decodedJWT = payload as unknown as DecodedSkyfireJwt;
-    req.skyfireToken = skyfireToken;
-
-    next();
-    return;
-  } catch (err: unknown) {
-    logger.warn({ err }, "Error while verifying token: ");
-    if (err instanceof joseErrors.JOSEError) {
-      res.status(401).json({
-        error: "Your JWT token is invalid",
-        errorCode: (err as any).code,
-        message: (err as any).message,
-      });
-      return;
-    }
-    res.status(401).json({
-      error: "Something went wrong while verifying your JWT token",
-      errorCode: "JWT_VERIFICATION_ERROR",
-    });
+  if (!vr.success) {
+    res.status(401).send(INVALID_KYAPAY_TEXT);
     return;
   }
+
+  req.decodedJWT = vr.payload as unknown as DecodedSkyfireJwt;
+  req.skyfireToken = token;
+
+  next();
 }
