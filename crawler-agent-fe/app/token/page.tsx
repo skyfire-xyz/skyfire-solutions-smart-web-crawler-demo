@@ -108,7 +108,7 @@ export default function CrawlWithTokenPage() {
                 </div>
               </div>
             )}
-            <h2 className="text-2xl font-bold mb-1">Step 1: Create KYA+PAY Token</h2>
+            <h2 className="text-2xl font-bold mb-1">Step 1: Create KYAPay Token</h2>
             <div className="mb-6">
               <div className="bg-white rounded-xl border border-gray-200 p-6 flex flex-col gap-4 shadow-md mt-6 w-full">
                 <div className="flex items-center gap-3">
