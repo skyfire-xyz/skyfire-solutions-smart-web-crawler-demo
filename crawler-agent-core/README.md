@@ -55,7 +55,7 @@ If you would like to run this app locally -
 
 ### skyfireKyaPayTokenHook with CheerioCrawler
 
-To make token-based authentication and bot identification reusable and easy to integrate, Skyfire provides a utility called `skyfireKyaPayTokenHook`. This hook is designed to be used with Crawlee's `CheerioCrawler` and ensures that every outgoing request includes the necessary Skyfire KYA+PAY token and a bot identifier header by injecting in `preNavigationHooks` hooks before each navigation.
+To make token-based authentication and bot identification reusable and easy to integrate, Skyfire provides a utility called `skyfireKyaPayTokenHook`. This hook is designed to be used with Crawlee's `CheerioCrawler` and ensures that every outgoing request includes the necessary Skyfire KYAPay token and a bot identifier header by injecting in `preNavigationHooks` hooks before each navigation.
 
 **Source code (controllers/skyfireKyaPayTokenHook.ts):**
 ```ts

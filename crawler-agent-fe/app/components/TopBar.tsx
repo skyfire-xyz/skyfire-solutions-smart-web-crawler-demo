@@ -17,7 +17,7 @@ export default function TopBar() {
               <span className="font-semibold">Unprotected Website:</span> Accessible to the crawler without any token.
             </li>
             <li>
-              <span className="font-semibold">Protected Website:</span> Requires a <span className="font-mono">kya+pay</span> token to allow crawler access.
+              <span className="font-semibold">Protected Website:</span> Requires a <span className="font-mono">kya-pay</span> token to allow crawler access.
             </li>
           </ul>
           <div className="mt-4">

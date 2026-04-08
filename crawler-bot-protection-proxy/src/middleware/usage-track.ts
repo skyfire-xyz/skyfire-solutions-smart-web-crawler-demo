@@ -81,7 +81,7 @@ export default async function usageTrack(
     } catch (error) {
       logger.error(`[Session: ${jwtPayload.jti}] Error charging token:`, error);
       res.status(402).json({
-        error: `Payment Required: Error charging Token. Kya+pay token is depleted, please create a new token.`,
+        error: `Payment Required: Error charging Token. Kya-pay token is depleted, please create a new token.`,
         reason: "insufficient_balance",
       });
       return;
@@ -131,7 +131,7 @@ export default async function usageTrack(
           error
         );
         res.status(402).json({
-          error: `Payment Required: Error charging Token. Kya+pay token is depleted, please create a new token.`,
+          error: `Payment Required: Error charging Token. Kya-pay token is depleted, please create a new token.`,
           reason: "insufficient_balance",
         });
         return;
@@ -189,7 +189,7 @@ export default async function usageTrack(
           error
         );
         res.status(402).json({
-          error: `Payment Required: Error charging Token. Kya+pay token is depleted, please create a new token.`,
+          error: `Payment Required: Error charging Token. Kya-pay token is depleted, please create a new token.`,
           reason: "insufficient_balance",
         });
         return;

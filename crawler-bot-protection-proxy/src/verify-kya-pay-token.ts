@@ -42,12 +42,12 @@ export async function verifyKyaPayToken(token: string): Promise<VerifyResult> {
 
   // Check typ header
   const typ = protectedHeader?.typ;
-  if (typ !== "kya+pay+jwt") {
+  if (typ !== "kya-pay+jwt") {
     console.error("Invalid typ:", typ);
     return {
       success: false,
       error: "invalid_typ",
-      message: "typ should be kya+pay+jwt",
+      message: "typ should be kya-pay+jwt",
     };
   }
 
