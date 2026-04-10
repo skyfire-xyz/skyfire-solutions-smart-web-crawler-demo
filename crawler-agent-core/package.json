@@ -22,7 +22,7 @@
     "@types/knex": "^0.16.1",
     "@types/node": "^20.14.10",
     "axios": "^1.8.2",
-    "basic-ftp": "^5.2.0",
+    "basic-ftp": "^5.2.2",
     "braces": "^3.0.3",
     "concurrently": "^8.2.2",
     "convict": "^6.2.4",
