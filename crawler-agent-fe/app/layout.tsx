@@ -39,8 +39,8 @@ interface RootLayoutProps {
   children: React.ReactNode
 }
 
-export default function RootLayout({ children }: RootLayoutProps) {
-  const headersList = headers()
+export default async function RootLayout({ children }: RootLayoutProps) {
+  const headersList = await headers()
   const hostname = headersList.get("host") || "default"
   const domain = hostname.split(".")[0]
 
@@ -50,6 +50,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
     <html lang="en" suppressHydrationWarning>
       <head />
       <body
+        suppressHydrationWarning
         className={cn(
           "min-h-screen bg-white font-sans antialiased",
           fontSans.variable
