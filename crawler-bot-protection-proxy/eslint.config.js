@@ -1,8 +1,12 @@
 const eslint = require('@eslint/js');
 const tseslint = require('@typescript-eslint/eslint-plugin');
 const tsParser = require('@typescript-eslint/parser');
+const globals = require('globals');
 
 module.exports = [
+  {
+    ignores: ['dist/**', 'node_modules/**', 'coverage/**'],
+  },
   eslint.configs.recommended,
   {
     files: ['src/**/*.ts'],
@@ -13,14 +17,7 @@ module.exports = [
         sourceType: 'module',
       },
       globals: {
-        console: 'readonly',
-        process: 'readonly',
-        __dirname: 'readonly',
-        __filename: 'readonly',
-        Buffer: 'readonly',
-        global: 'readonly',
-        setImmediate: 'readonly',
-        clearImmediate: 'readonly',
+        ...globals.node,
       },
     },
     plugins: {
@@ -38,6 +35,14 @@ module.exports = [
       'comma-dangle': ['error', 'always-multiline'],
       'object-curly-spacing': ['error', 'always'],
       'array-bracket-spacing': ['error', 'never'],
+    },
+  },
+  {
+    files: ['src/**/__tests__/**/*.ts', 'src/**/*.test.ts'],
+    languageOptions: {
+      globals: {
+        ...globals.jest,
+      },
     },
   },
 ];

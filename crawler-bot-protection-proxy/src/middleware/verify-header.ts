@@ -18,7 +18,7 @@ export const INSUFFICIENT_KYAPAY_TEXT =
 export default async function verifyHeader(
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> {
   if (!isBotRequest(req)) {
     next();

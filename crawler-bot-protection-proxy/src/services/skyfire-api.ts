@@ -17,7 +17,7 @@ interface ChargeTokenError {
 export async function chargeToken(
   skyfireToken: string,
   amountToCharge: number,
-  sessionId?: string
+  sessionId?: string,
 ): Promise<ChargeTokenResponse> {
   try {
     const response = await fetch(`${SKYFIRE_API_URL}/api/v1/tokens/charge`, {

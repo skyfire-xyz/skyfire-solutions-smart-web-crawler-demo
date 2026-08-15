@@ -86,22 +86,22 @@ describe("Bot Protection Integration Tests", () => {
     const responseHeaders = {
       "X-Payment-Charged": response.headers.get("X-Payment-Charged"),
       "X-Payment-Session-Count": response.headers.get(
-        "X-Payment-Session-Count"
+        "X-Payment-Session-Count",
       ),
       "X-Payment-Session-Accumulated-Amount": response.headers.get(
-        "X-Payment-Session-Accumulated-Amount"
+        "X-Payment-Session-Accumulated-Amount",
       ),
       "X-Payment-Session-Remaining-Balance": response.headers.get(
-        "X-Payment-Session-Remaining-Balance"
+        "X-Payment-Session-Remaining-Balance",
       ),
       "X-Payment-Session-Batch-Threshold": response.headers.get(
-        "X-Payment-Session-Batch-Threshold"
+        "X-Payment-Session-Batch-Threshold",
       ),
       "X-Payment-Session-Token-MNR": response.headers.get(
-        "X-Payment-Session-Token-MNR"
+        "X-Payment-Session-Token-MNR",
       ),
       "X-Payment-Session-Expires-At": response.headers.get(
-        "X-Payment-Session-Expires-At"
+        "X-Payment-Session-Expires-At",
       ),
     };
 
@@ -248,7 +248,7 @@ describe("Bot Protection Integration Tests", () => {
       expect(response.body.error).toContain("Payment Required");
       expect(response.headers["X-Payment-Session-Remaining-Balance"]).toBe("0");
       expect(response.headers["X-Payment-Session-Accumulated-Amount"]).toBe(
-        "0"
+        "0",
       );
     }, 30000);
   });
@@ -314,7 +314,7 @@ describe("Bot Protection Integration Tests", () => {
       }
 
       expect(responses[0].headers["X-Payment-Session-Batch-Threshold"]).toBe(
-        "0.0005"
+        "0.0005",
       );
 
       // All requests should succeed
@@ -335,7 +335,7 @@ describe("Bot Protection Integration Tests", () => {
 
       expect(response.headers["X-Payment-Charged"]).toBe("0.0005");
       expect(response.headers["X-Payment-Session-Accumulated-Amount"]).toBe(
-        "0"
+        "0",
       );
     });
 

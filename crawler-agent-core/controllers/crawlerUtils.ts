@@ -1,11 +1,9 @@
 import axios from 'axios'
-import { Page } from 'puppeteer'
 import Pusher from 'pusher'
 import { config } from './config'
 import {
   CRAWLER,
   MessageType,
-  PAGE_MAX_LENGTH,
   PaidStatus,
   RobotsTxtData
 } from './types'
@@ -173,27 +171,6 @@ export function normalizePath(path: string): string {
     path = path.slice(0, -1)
   }
   return path.endsWith('/') ? path : `${path}/`
-}
-
-export async function getTitleFromPage(page: Page): Promise<string> {
-  let title: string
-  try {
-    title = await page.$eval(
-      '.text-40.font-bold.leading-98.lg\\:text-80',
-      (h1) => h1?.textContent?.trim() ?? 'No title found'
-    )
-  } catch (e) {
-    title = 'No title found'
-  }
-  return title
-}
-
-export async function getTextFromPage(page: Page): Promise<string> {
-  let textContent = await page.$eval('body', (element) => element.innerText)
-  if (textContent.length > PAGE_MAX_LENGTH) {
-    textContent = textContent.slice(0, PAGE_MAX_LENGTH) + '...'
-  }
-  return textContent
 }
 
 export const pusher = new Pusher({

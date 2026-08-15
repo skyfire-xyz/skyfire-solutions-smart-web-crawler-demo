@@ -22,7 +22,7 @@ export class UsageSessionManager {
     perRequestAmount: number,
     maximumRequestCount: number,
     sessionDuration: number,
-    batchAmountThreshold: number
+    batchAmountThreshold: number,
   ) {
     this.redisKey = redisKey;
     this.perRequestAmount = perRequestAmount;
@@ -133,7 +133,7 @@ export class UsageSessionManager {
     } catch (err) {
       logger.error(
         { err },
-        `[Session: ${this.redisKey}] Error getting remaining balance:`
+        `[Session: ${this.redisKey}] Error getting remaining balance:`,
       );
       return null;
     }
@@ -149,7 +149,7 @@ export class UsageSessionManager {
     } catch (err) {
       logger.error(
         { err },
-        `[Session: ${this.redisKey}] Error getting request count:`
+        `[Session: ${this.redisKey}] Error getting request count:`,
       );
       return 0;
     }
@@ -165,7 +165,7 @@ export class UsageSessionManager {
     } catch (err) {
       logger.error(
         { err },
-        `[Session: ${this.redisKey}] Error getting accumulated amount:`
+        `[Session: ${this.redisKey}] Error getting accumulated amount:`,
       );
       return 0;
     }
@@ -180,7 +180,7 @@ export class UsageSessionManager {
     } catch (err) {
       logger.error(
         { err },
-        `[Session: ${this.redisKey}] Error checking if session exists:`
+        `[Session: ${this.redisKey}] Error checking if session exists:`,
       );
       return false;
     }
@@ -196,7 +196,7 @@ export class UsageSessionManager {
     } catch (err) {
       logger.error(
         { err },
-        `[Session: ${this.redisKey}] Error checking maximum request count:`
+        `[Session: ${this.redisKey}] Error checking maximum request count:`,
       );
       return false;
     }
@@ -209,11 +209,11 @@ export class UsageSessionManager {
     const balance = await this.getRemainingBalance();
     const accumulated = await this.getAccumulatedAmount();
     const requiredAmount = this.parseFloatSafe(
-      this.perRequestAmount + accumulated
+      this.perRequestAmount + accumulated,
     );
 
     logger.error(
-      `[Session: ${this.redisKey}] hasReachedRemainingBalance: balance=${balance}, accumulated=${accumulated}, perRequestAmount=${this.perRequestAmount}, batchAmountThreshold=${this.batchAmountThreshold}`
+      `[Session: ${this.redisKey}] hasReachedRemainingBalance: balance=${balance}, accumulated=${accumulated}, perRequestAmount=${this.perRequestAmount}, batchAmountThreshold=${this.batchAmountThreshold}`,
     );
 
     return balance === null || balance === 0 || balance < requiredAmount;
@@ -229,7 +229,7 @@ export class UsageSessionManager {
     } catch (err) {
       logger.error(
         { err },
-        `[Session: ${this.redisKey}] Error checking batch threshold:`
+        `[Session: ${this.redisKey}] Error checking batch threshold:`,
       );
       return false;
     }
@@ -249,7 +249,7 @@ export class UsageSessionManager {
     } catch (err) {
       logger.error(
         { err },
-        `[Session: ${this.redisKey}] Error getting session expiration timestamp:`
+        `[Session: ${this.redisKey}] Error getting session expiration timestamp:`,
       );
       return null;
     }
@@ -290,7 +290,7 @@ export class UsageSessionManager {
           "remainingBalance",
           sessionData.remainingBalance || "0",
           "updated_at",
-          Date.now().toString()
+          Date.now().toString(),
         );
 
         // Set expiration for the data key (cleanup after 1 hour)
@@ -299,7 +299,7 @@ export class UsageSessionManager {
     } catch (err) {
       logger.error(
         { err },
-        `[Session: ${this.redisKey}] Error storing session data for expiration:`
+        `[Session: ${this.redisKey}] Error storing session data for expiration:`,
       );
     }
   }
@@ -315,7 +315,7 @@ export class UsageSessionManager {
     } catch (err) {
       logger.error(
         { err },
-        `[Session: ${this.redisKey}] Error deleting session:`
+        `[Session: ${this.redisKey}] Error deleting session:`,
       );
     }
   }

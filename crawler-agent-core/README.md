@@ -5,7 +5,7 @@ This is an Express application with crawling logic for web crawler
 ### Pre-requisites
 
 1. Approved Seller Service with Seller Skyfire API Key:
-- Follow the [Skyfire Platform Setup Guide](https://docs.skyfire.xyz/docs/introduction) to create a seller account and seller service.
+- Follow the [Skyfire Platform Setup Guide](https://docs.skyfire.xyz/) to create a seller account and seller service.
 
 2. Pusher Credentials:
 - Create a Pusher Account and App:
