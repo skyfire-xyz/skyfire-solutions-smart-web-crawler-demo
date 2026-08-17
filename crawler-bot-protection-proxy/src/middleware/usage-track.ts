@@ -9,7 +9,7 @@ import logger from "../services/logger";
 export default async function usageTrack(
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> {
   // Read environment variables inside the function for test flexibility
   const batchAmountThreshold =
@@ -17,7 +17,7 @@ export default async function usageTrack(
   const sessionDurationSeconds =
     Number(process.env.REDIS_SESSION_EXPIRY) || 300;
   const overrideMaximumRequestCount = Number(
-    process.env.OVERRIDE_MAXIMUM_REQUEST_COUNT
+    process.env.OVERRIDE_MAXIMUM_REQUEST_COUNT,
   );
 
   // Only process authenticated bot requests
@@ -33,7 +33,7 @@ export default async function usageTrack(
     overrideMaximumRequestCount || Number(jwtPayload.mnr) || 1000; // For testing purpose override the maximum request count
 
   logger.info({
-    msg: `Threshold Config`,
+    msg: "Threshold Config",
     MNR: maximumRequestCount,
     SPR: perRequestAmount,
     MaxDuration: sessionDurationSeconds,
@@ -46,7 +46,7 @@ export default async function usageTrack(
     perRequestAmount,
     maximumRequestCount,
     sessionDurationSeconds,
-    batchAmountThreshold
+    batchAmountThreshold,
   );
 
   // If the session is new, charge the token first and get the remaining balance
@@ -63,7 +63,7 @@ export default async function usageTrack(
       const { remainingBalance } = await chargeToken(
         req.skyfireToken,
         perRequestAmount,
-        jwtPayload.jti
+        jwtPayload.jti,
       ); // Charge the token
 
       initialCharge = true;
@@ -76,12 +76,15 @@ export default async function usageTrack(
       await logSession(
         jwtPayload,
         manager,
-        `Initial charge: charged ${perRequestAmount}`
+        `Initial charge: charged ${perRequestAmount}`,
       );
     } catch (error) {
-      logger.error(`[Session: ${jwtPayload.jti}] Error charging token:`, error);
+      logger.error(
+        { err: error },
+        `[Session: ${jwtPayload.jti}] Error charging token:`,
+      );
       res.status(402).json({
-        error: `Payment Required: Error charging Token. Kya-pay token is depleted, please create a new token.`,
+        error: "Payment Required: Error charging Token. Kya-pay token is depleted, please create a new token.",
         reason: "insufficient_balance",
       });
       return;
@@ -104,7 +107,7 @@ export default async function usageTrack(
       jwtPayload,
       manager,
       `[Threshold reached] Error:402: hasReachedRemainingBalance=${hasReachedRemainingBalance} hasReachedMaximumRequestCount=${hasReachedMaximumRequestCount}`,
-      "warn"
+      "warn",
     );
 
     // Check if user owes any accumulated amount
@@ -118,7 +121,7 @@ export default async function usageTrack(
         const { remainingBalance } = await chargeToken(
           req.skyfireToken,
           accumulated,
-          jwtPayload.jti
+          jwtPayload.jti,
         );
         // Reset accumulated amount
         await manager.resetAccumulated();
@@ -127,11 +130,11 @@ export default async function usageTrack(
         totalChargedAmount = accumulated;
       } catch (error) {
         logger.error(
+          { err: error },
           `[Session: ${jwtPayload.jti}] Error charging token:`,
-          error
         );
         res.status(402).json({
-          error: `Payment Required: Error charging Token. Kya-pay token is depleted, please create a new token.`,
+          error: "Payment Required: Error charging Token. Kya-pay token is depleted, please create a new token.",
           reason: "insufficient_balance",
         });
         return;
@@ -146,7 +149,7 @@ export default async function usageTrack(
     if (hasReachedRemainingBalance) {
       res.status(402).json({
         error: `Payment Required: token usage exceeded, please create a new token. Insufficient balance. ${
-          hasCharges ? `Accumulated amount was charged.` : ""
+          hasCharges ? "Accumulated amount was charged." : ""
         }`,
         reason: "insufficient_balance",
       });
@@ -154,7 +157,7 @@ export default async function usageTrack(
     } else if (hasReachedMaximumRequestCount) {
       res.status(402).json({
         error: `Payment Required: token usage exceeded, please create a new token. Maximum request count reached. ${
-          hasCharges ? `Accumulated amount was charged.` : ""
+          hasCharges ? "Accumulated amount was charged." : ""
         }`,
         reason: "batch_limit_reached",
       });
@@ -176,7 +179,7 @@ export default async function usageTrack(
         const { remainingBalance } = await chargeToken(
           req.skyfireToken,
           accumulated,
-          jwtPayload.jti
+          jwtPayload.jti,
         );
         // Reset accumulated amount
         await manager.resetAccumulated();
@@ -185,11 +188,11 @@ export default async function usageTrack(
         totalChargedAmount = accumulated;
       } catch (error) {
         logger.warn(
+          { err: error },
           `[Session: ${jwtPayload.jti}] Error charging token:`,
-          error
         );
         res.status(402).json({
-          error: `Payment Required: Error charging Token. Kya-pay token is depleted, please create a new token.`,
+          error: "Payment Required: Error charging Token. Kya-pay token is depleted, please create a new token.",
           reason: "insufficient_balance",
         });
         return;
@@ -199,7 +202,7 @@ export default async function usageTrack(
     await logSession(
       jwtPayload,
       manager,
-      `Threashold reached: Batch amount threshold reached. We charged the accumulated amount.`
+      "Threashold reached: Batch amount threshold reached. We charged the accumulated amount.",
     );
   }
 
@@ -220,7 +223,7 @@ export default async function usageTrack(
 async function makePaymentHeaders(
   res: Response,
   manager: UsageSessionManager,
-  chargedAmount?: number
+  chargedAmount?: number,
 ): Promise<void> {
   const [count, accumulated, remainingBalance, sessionExpiry] =
     await Promise.all([
@@ -235,19 +238,19 @@ async function makePaymentHeaders(
   res.setHeader("X-Payment-Session-Accumulated-Amount", accumulated.toString());
   res.setHeader(
     "X-Payment-Session-Remaining-Balance",
-    remainingBalance?.toString() || "0"
+    remainingBalance?.toString() || "0",
   );
   res.setHeader(
     "X-Payment-Session-Token-MNR",
-    manager.maximumRequestCount.toString()
+    manager.maximumRequestCount.toString(),
   );
   res.setHeader(
     "X-Payment-Session-Expires-At",
-    sessionExpiry?.toString() || "0"
+    sessionExpiry?.toString() || "0",
   );
   res.setHeader(
     "X-Payment-Session-Batch-Threshold",
-    manager.batchAmountThreshold.toString()
+    manager.batchAmountThreshold.toString(),
   );
 }
 
@@ -258,7 +261,7 @@ async function logSession(
   jwtPayload: any,
   manager: UsageSessionManager,
   additionalInfo?: string,
-  level: "info" | "warn" | "error" = "info"
+  level: "info" | "warn" | "error" = "info",
 ): Promise<void> {
   const [count, accumulated, remainingBalance] = await Promise.all([
     manager.getRequestCount(),

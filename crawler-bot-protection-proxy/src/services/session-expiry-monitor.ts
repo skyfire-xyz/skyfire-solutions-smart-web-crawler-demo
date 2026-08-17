@@ -79,7 +79,7 @@ async function processExpiredSessions(): Promise<void> {
     const expiredSessions = await redis.zrangebyscore(
       EXPIRY_TRACKING_KEY,
       0,
-      now
+      now,
     );
 
     for (const sessionKey of expiredSessions) {
@@ -101,13 +101,13 @@ async function processExpiredSessions(): Promise<void> {
         }
       } catch (error) {
         logger.error(
+          { err: error },
           `[Session: ${sessionKey}] Error processing expired session:`,
-          error
         );
       }
     }
   } catch (error) {
-    logger.error("Error in processExpiredSessions:", error);
+    logger.error({ err: error }, "Error in processExpiredSessions:");
   }
 }
 
@@ -130,7 +130,7 @@ export async function startExpiryMonitor(): Promise<void> {
   logger.info(
     `Session expiry monitor started - checking every ${
       MONITOR_INTERVAL / 1000
-    } seconds`
+    } seconds`,
   );
 }
 
@@ -139,17 +139,17 @@ export async function startExpiryMonitor(): Promise<void> {
  */
 export async function trackSessionExpiry(
   sessionKey: string,
-  expiryTime: number
+  expiryTime: number,
 ): Promise<void> {
   try {
     await redis.zadd(EXPIRY_TRACKING_KEY, expiryTime, sessionKey);
     logger.info(
-      `[Session: ${sessionKey}] Reset Expiry at ${new Date(expiryTime)})`
+      `[Session: ${sessionKey}] Reset Expiry at ${new Date(expiryTime)})`,
     );
   } catch (error) {
     logger.error(
       { error },
-      `[Session: ${sessionKey}] Error tracking session expiry:`
+      `[Session: ${sessionKey}] Error tracking session expiry:`,
     );
   }
 }
@@ -158,7 +158,7 @@ export async function trackSessionExpiry(
  * Remove a session from expiry tracking (when manually deleted)
  */
 export async function removeSessionFromTracking(
-  sessionKey: string
+  sessionKey: string,
 ): Promise<void> {
   try {
     await redis.zrem(EXPIRY_TRACKING_KEY, sessionKey);
@@ -166,7 +166,7 @@ export async function removeSessionFromTracking(
   } catch (error) {
     logger.error(
       { error },
-      `[Session: ${sessionKey}] Error removing session from tracking:`
+      `[Session: ${sessionKey}] Error removing session from tracking:`,
     );
   }
 }
