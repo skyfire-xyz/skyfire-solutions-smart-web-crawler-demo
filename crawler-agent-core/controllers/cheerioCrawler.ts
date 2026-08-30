@@ -1,3 +1,4 @@
+import crypto from 'crypto'
 import { CheerioCrawler, RequestQueue } from 'crawlee'
 import {
   DEFAULT_DEPTH,
