@@ -1,6 +1,7 @@
 "use client"
 
 import { useRouter, usePathname } from "next/navigation"
+import { useCrawling } from "../contexts/CrawlingContext"
 
 const tabs = [
   { label: "Crawl without Token", route: "/" },
@@ -10,6 +11,7 @@ const tabs = [
 const NavTabs: React.FC = () => {
   const router = useRouter()
   const pathname = usePathname()
+  const { isCrawling } = useCrawling()
 
   return (
     <div className="flex items-center gap-2 border-b border-gray-200 mb-4">
@@ -22,8 +24,9 @@ const NavTabs: React.FC = () => {
               isActive
                 ? "border-blue-600 text-blue-600 font-semibold"
                 : "border-transparent text-gray-600 hover:text-blue-600 hover:border-blue-600"
-            }`}
-            onClick={() => router.push(tab.route)}
+            } ${isCrawling ? "cursor-not-allowed opacity-50" : ""}`}
+            onClick={() => !isCrawling && router.push(tab.route)}
+            disabled={isCrawling}
           >
             {tab.label}
           </button>
