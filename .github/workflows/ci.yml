@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: build (${{ matrix.package }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - package: crawler-agent-core
+            manager: npm
+          - package: crawler-agent-fe
+            manager: yarn
+          - package: crawler-bot-protection-proxy
+            manager: yarn
+    defaults:
+      run:
+        working-directory: ${{ matrix.package }}
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with:
+          node-version: 24
+          cache: ${{ matrix.manager }}
+          cache-dependency-path: ${{ matrix.package }}/${{ matrix.manager == 'npm' && 'package-lock.json' || 'yarn.lock' }}
+      - if: matrix.manager == 'npm'
+        run: npm ci
+      - if: matrix.manager == 'yarn'
+        run: yarn install --frozen-lockfile
+      - run: npm run typecheck
+      - run: npm run build
+
+  ci:
+    name: ci
+    runs-on: ubuntu-latest
+    needs: build
+    if: always()
+    steps:
+      - run: |
+          if [ "${{ needs.build.result }}" != "success" ]; then
+            echo "one or more packages failed" >&2
+            exit 1
+          fi
