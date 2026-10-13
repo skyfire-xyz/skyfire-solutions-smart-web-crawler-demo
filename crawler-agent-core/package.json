@@ -22,7 +22,7 @@
     "axios": "1.19.0",
     "convict": "6.2.5",
     "cors": "2.8.6",
-    "crawlee": "3.18.1",
+    "crawlee": "3.18.2",
     "dotenv": "16.6.1",
     "express": "4.22.2",
     "pusher": "5.3.4"
