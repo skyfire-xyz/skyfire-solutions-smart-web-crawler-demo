@@ -19,7 +19,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "axios": "1.19.0",
+    "axios": "1.20.0",
     "convict": "6.2.5",
     "cors": "2.8.6",
     "crawlee": "3.18.1",
