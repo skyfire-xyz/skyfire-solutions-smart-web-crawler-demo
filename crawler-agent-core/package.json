@@ -24,7 +24,7 @@
     "cors": "2.8.6",
     "crawlee": "3.18.1",
     "dotenv": "16.6.1",
-    "express": "4.22.2",
+    "express": "4.22.3",
     "pusher": "5.3.4"
   },
   "devDependencies": {
