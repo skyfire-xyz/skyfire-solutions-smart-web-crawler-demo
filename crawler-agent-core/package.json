@@ -4,7 +4,7 @@
   "description": "Backend crawler service that executes crawl jobs and pays for protected content with Skyfire KYA+PAY tokens",
   "main": "dist/server.js",
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=24.0.0"
   },
   "scripts": {
     "build": "rimraf dist && npx tsc",
