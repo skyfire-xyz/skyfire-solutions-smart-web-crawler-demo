@@ -30,7 +30,7 @@
   "license": "MIT",
   "dependencies": {
     "cors": "2.8.6",
-    "dd-trace": "5.121.0",
+    "dd-trace": "5.131.1",
     "dotenv": "17.4.2",
     "express": "5.2.1",
     "helmet": "8.3.0",
